@@ -6,7 +6,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_CLANG_TIDY clang-tidy)
+set(CMAKE_CXX_CLANG_TIDY clang-tidy --use-color)
 set(CMAKE_CXX_STANDARD 20)
 
 if(MSVC)
@@ -46,7 +46,8 @@ include_directories(${GLFW3_INCLUDE_DIRS})
 
 add_executable(mineclone
   src/main.cpp
-  src/mineclone.cpp)
+  src/engine/mineclone.cpp
+  src/engine/system/renderer.cpp)
 
 target_link_libraries(mineclone PRIVATE glfw::glfw)
 target_link_libraries(mineclone PRIVATE glad::glad)

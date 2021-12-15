@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-#include "mineclone.h"
+#include "engine/mineclone.h"
 
 int main(int /*unused*/, char** /*unused*/) {
     Mineclone game;

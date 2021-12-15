@@ -5,16 +5,17 @@
 // must be after glad
 #include <GLFW/glfw3.h>
 
+#include "system/renderer.h"
+
 class Mineclone {
    public:
-
-    // Will throw if creation of the window failed
-    Mineclone();
-
+    Mineclone() /* throw */;
     ~Mineclone();
     void run() const;
+
    private:
-    GLFWwindow* mWindow = nullptr;
+    Renderer renderer;
+    GLFWwindow *mWindow = nullptr;
 };
 
 #endif  // !MINECLONE_H_
