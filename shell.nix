@@ -1,8 +1,8 @@
 { pkgs ? import <nixpkgs> {} }:
-pkgs.mkShell {
+pkgs.mkShell.override { stdenv = pkgs.stdenvNoCC; } {
   buildInputs = with pkgs; [
     conan cmake pkg-config
-    buildPackages.gcc
+    buildPackages.gcc11
 
     # system libs
     # I dont use all that lol, but conan ant all of them

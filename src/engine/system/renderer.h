@@ -10,7 +10,7 @@ class Renderer {
     Renderer &operator=(const Renderer &) = delete;
     ~Renderer() = default;
 
-    void render() const {}
+    void render() const;
 };
 
 #endif  // !RENDERER_H

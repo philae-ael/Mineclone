@@ -47,6 +47,7 @@ void Mineclone::run() const {
 
         if (glfwGetKey(mWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(mWindow, true);
+
         glfwSwapBuffers(mWindow);
         glfwPollEvents();
     }

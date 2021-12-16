@@ -47,7 +47,8 @@ include_directories(${GLFW3_INCLUDE_DIRS})
 add_executable(mineclone
   src/main.cpp
   src/engine/mineclone.cpp
-  src/engine/system/renderer.cpp)
+  src/engine/system/renderer.cpp
+  src/engine/component/shader.cpp)
 
 target_link_libraries(mineclone PRIVATE glfw::glfw)
 target_link_libraries(mineclone PRIVATE glad::glad)
