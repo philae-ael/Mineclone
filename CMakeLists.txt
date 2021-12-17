@@ -26,7 +26,7 @@ endif()
 
 include(${CMAKE_BINARY_DIR}/conan.cmake)
 
-conan_cmake_configure(REQUIRES glfw/3.3.6 glad/0.1.34
+conan_cmake_configure(REQUIRES glfw/3.3.6 glad/0.1.34 catch2/2.13.7
                       GENERATORS cmake_find_package
                       OPTIONS )
 
@@ -58,3 +58,6 @@ add_custom_target(run
     DEPENDS mineclone
     WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
 )
+
+enable_testing()
+add_subdirectory(test)
