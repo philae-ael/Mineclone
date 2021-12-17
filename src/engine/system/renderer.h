@@ -3,7 +3,7 @@
 
 class Renderer {
    public:
-    Renderer() = default;
+    Renderer();
     Renderer(Renderer &&) = delete;
     Renderer(const Renderer &) = delete;
     Renderer &operator=(Renderer &&) = delete;

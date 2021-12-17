@@ -61,6 +61,7 @@ pkgs.mkShell.override
     conan
     cmake
     pkg-config
+    gdb
 
     # Language servers
     cmake-language-server

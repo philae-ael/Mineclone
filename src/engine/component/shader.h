@@ -37,12 +37,20 @@ class Shader {
     };
 
    public:
-    Shader(const std::string &vertex_shader_source, const std::string &fragment_shader_source);
+    Shader(const std::string &vertex_shader_source,
+           const std::string &fragment_shader_source);
     Shader(Shader &&) = default;
     Shader(const Shader &) = default;
     Shader &operator=(Shader &&) = default;
     Shader &operator=(const Shader &) = default;
     ~Shader();
+
+    GLint getAttribLocation(const char *attrib) const {
+        return glGetAttribLocation(shader_program, attrib);
+    }
+    GLint getUniformLocation(const char *attrib) const {
+        return glGetUniformLocation(shader_program, attrib);
+    }
 
     [[nodiscard]] UseShaderWithRAII use() const {
         return UseShaderWithRAII{shader_program};

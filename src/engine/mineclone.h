@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 // must be after glad
 #include <GLFW/glfw3.h>
+#include <optional>
 
 #include "system/renderer.h"
 
@@ -14,7 +15,8 @@ class Mineclone {
     void run() const;
 
    private:
-    Renderer renderer;
+    // Allow to delay initialisation
+    std::optional<Renderer> renderer;
     GLFWwindow *mWindow = nullptr;
 };
 
