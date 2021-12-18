@@ -18,11 +18,10 @@ struct vec {
 
     constexpr reference operator[](const int i) { return data[i]; }
     constexpr const_reference operator[](int i) const { return data[i]; }
-
-    constexpr const_iterator cbegin() const { return iterator(data); }
-    constexpr const_iterator cend() const { return iterator(data + N); }
     constexpr iterator begin() { return iterator(data); }
     constexpr iterator end() { return iterator(data + N); }
+    constexpr const_iterator cbegin() const { return iterator(data); }
+    constexpr const_iterator cend() const { return iterator(data + N); }
 
     constexpr vec &operator-() {
         std::transform(this->cbegin(), this->cend(), this->begin(),
@@ -84,6 +83,28 @@ struct vec {
         vec res;
         std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), res.begin(),
                        std::minus{});
+        return res;
+    }
+
+    //
+    // Operation with a scalar : v2 = scalar `op` v
+    // Note: There is no operator/, operator- (because i want the usual order
+    // scalar `op` to be respected), use resp. (1/x)*v, (-x)*v
+    //
+    constexpr vec friend operator*(const value_type scalar,
+                                   const vec<T, N> &rhs) {
+        vec res;
+        std::transform(
+            rhs.cbegin(), rhs.cend(), res.begin(),
+            [scalar](const value_type &rhs_) { return scalar * rhs_; });
+        return res;
+    }
+    constexpr vec friend operator+(const value_type scalar,
+                                   const vec<T, N> &rhs) {
+        vec res;
+        std::transform(
+            rhs.cbegin(), rhs.cend(), res.begin(),
+            [scalar](const value_type &rhs_) { return scalar + rhs_; });
         return res;
     }
 
