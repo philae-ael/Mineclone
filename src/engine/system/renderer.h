@@ -1,6 +1,8 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include <chrono>
+
 class Renderer {
    public:
     Renderer();
@@ -11,6 +13,9 @@ class Renderer {
     ~Renderer() = default;
 
     void render() const;
+
+   private:
+    std::chrono::steady_clock::time_point begin;
 };
 
 #endif  // !RENDERER_H
