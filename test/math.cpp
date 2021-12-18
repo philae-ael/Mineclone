@@ -1,5 +1,6 @@
 #include "engine/utils/math.h"
 
+#include <cmath>
 #include <catch2/catch.hpp>
 #include <iostream>
 
@@ -100,4 +101,37 @@ TEST_CASE("math::mat dot") {
     constexpr math::mat<int, 2, 2> m5{{{1, 0}, {0, -1}}};
     constexpr math::vec2i v{1, 2};
     STATIC_REQUIRE(math::dot(m5, v) == math::vec2i{1, -2});
+}
+
+TEST_CASE("math near") {
+    constexpr double eps = 1e-1;
+    STATIC_REQUIRE(math::near(math::vec2d{-2., 1.}, math::vec2d{-2., 1.}, eps));// NOLINT
+    STATIC_REQUIRE_FALSE(math::near(math::vec2d{-2. + eps, 1.}, math::vec2d{-2., 1.}, eps));// NOLINT
+}
+TEST_CASE("math rotate") {
+    constexpr double eps = 1e-1;
+    constexpr math::vec2d v1{1, 2};
+    constexpr math::mat2d rot = math::rotate<double>(M_PI/2);
+
+    constexpr auto res = math::dot(rot, v1);
+
+    STATIC_REQUIRE(math::near(res, math::vec2d{2., -1.}, eps));// NOLINT
+    
+    constexpr math::vec3d v2{1, 0, 0};
+    constexpr math::mat3d rot2 = math::rotate(M_PI/2, v2);
+
+    constexpr auto res2 = math::dot(rot2, v2);
+    
+    STATIC_REQUIRE(math::near(res2, v2, eps));// NOLINT
+}
+
+TEST_CASE("math constexpr") {
+    auto abs = [](auto x) constexpr -> decltype(x){
+        if(x<0) return -x;
+        return x;
+    };
+    constexpr double eps = 1e-1;
+    STATIC_REQUIRE(abs(math::cos(M_PI) + 1) < eps); // NOLINT
+    STATIC_REQUIRE(abs(math::sqrt(4) - 2) < eps); // NOLINT
+    STATIC_REQUIRE(abs(math::sqrt(1) - 1) < eps); // NOLINT
 }

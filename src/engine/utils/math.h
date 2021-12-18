@@ -1,10 +1,14 @@
 #ifndef MATH_H_
 #define MATH_H_
 
+#include <unistd.h>
+
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <functional>
 #include <numeric>
+#include <type_traits>
 namespace math {
 
 template <typename T, int N, int M>
@@ -174,9 +178,124 @@ struct mat {
     }
 };
 
+template <typename T, int N>
+using vec = mat<T, N, 1>;
+
+template <typename T, int N>
+constexpr mat<T, N, N> identity() {
+    mat<T, N, N> res{};
+    for (int i = 0; i < N; i++) {
+        res.at(i, i) = 1;
+    }
+    return res;
+}
+
+constexpr double cos(double angle) {
+    if (std::is_constant_evaluated()) {
+        const unsigned int max_iter = 100;
+
+        auto _cos = [](double angle) {
+            double anglepn = 1, acc = 0, fac = 1;
+            for (unsigned int i = 0; i < max_iter;) {
+                acc += anglepn / fac;
+                fac *= (i + 1) * (i + 2);
+                anglepn *= -angle * angle;
+                i = i + 2;
+            }
+            return acc;
+        };
+
+        return _cos(angle);
+    }
+    return std::cos(angle);
+}
+
+constexpr double sin(double angle) {
+    if (std::is_constant_evaluated()) {
+        // Should be enough, lol
+        const unsigned int max_iter = 100;
+
+        auto _sin = [](double angle) {
+            double anglepn = angle, acc = 0, fac = 1;
+            for (unsigned int i = 1; i < max_iter;) {
+                acc += anglepn / fac;
+                fac *= (i + 1) * (i + 2);
+                anglepn *= -angle * angle;
+                i = i + 2;
+            }
+            return acc;
+        };
+
+        return _sin(angle);
+    }
+    return std::sin(angle);
+}
+
+constexpr double sqrt(const double x) {
+    if (std::is_constant_evaluated()) {
+        const unsigned int max_iter = 100;
+        const double eps = 1e-4;
+        double y = x;
+        for (unsigned int i = 1; i < max_iter; i++) {
+            if (y * y - x < eps) return y;
+            y = y - (y * y - x) / (2 * y);
+        }
+        return y;
+    }
+    return std::sqrt(x);
+}
+
+template <typename T, int N>
+constexpr vec<T, N> normalize(const vec<T, N> &v) {
+    auto n = norm2(v);
+    if (n == 0.) return v;  // v == 0 0 0...  so it doesnt really matter
+    return sqrt(1 / n) * v;
+}
+
+template <typename T>
+constexpr mat<T, 2, 2> rotate(double angle) {
+    return {{{cos(angle), sin(angle)}, {-sin(angle), cos(angle)}}};
+}
+
+template <typename T, int L, int M, int N>
+constexpr mat<T, N, N> extend(mat<T, L, M> m) {
+    auto res = identity<T, N>();
+    for (int i = 0; i < L; i++) {
+        for (int j = 0; j < L; j++) {
+            res.at(i, j) = m.at(i, j);
+        }
+    }
+    return res;
+}
+
+template <typename T>
+constexpr mat<T, 3, 3> rotate(double angle, vec<T, 3> axis) {
+    using vec3T = vec<T, 3>;
+    axis = normalize(axis);
+
+    // either 1, 0, 0 or 0, 1, 0 is not parallel to p1, thus we can find a perpendicular vector to axis
+    vec3T p1 = wedge(axis, {1, 0, 0});
+    p1 = normalize(p1);
+    if(norm2(p1) < 0.1){ // NOLINT: if this is verified, axis is parallel to axis
+        p1 = wedge(axis, {0, 1, 0});
+        p1 = normalize(p1);
+    }
+
+    auto p2 = wedge(axis, p1);
+
+    // should be automatic because axis and p1 are perpendicular and
+    // normalized thus axis `wedge` p1 has norm 1
+    p2 = normalize(p2);
+
+    mat<T, 3, 3> rot3 = extend<T, 2, 2, 3>(rotate<T>(angle));
+    mat<T, 3, 3> P = mat<T, 3, 3>{p1, p2, axis};
+    mat<T, 3, 3> P_inv = transpose(P);
+
+    return dot(dot(P, rot3), P_inv);
+}
 
 template <typename T, int N, int M>
-constexpr mat<T, M, N> transpose(const mat<T, N, M> &m){
+constexpr mat<T, M, N> transpose(const mat<T, N, M> &m) {
     mat<T, M, N> res;
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < M; j++) {
@@ -191,7 +310,7 @@ constexpr mat<T, M, N> transpose(const mat<T, N, M> &m){
 template <typename T, int L, int M, int N>
 constexpr mat<T, L, N> dot(const mat<T, L, M> &lhs, const mat<T, M, N> &rhs) {
     mat<T, L, N> res;
-    mat<T, N, M> rhsT = transpose(rhs); // should allow better cache locality
+    mat<T, N, M> rhsT = transpose(rhs);  // should allow better cache locality
     for (int i = 0; i < L; i++) {
         for (int j = 0; j < N; j++) {
             res.at(i, j) = dot(mat{lhs.at(i)}, mat{rhsT.at(j)});
@@ -200,11 +319,7 @@ constexpr mat<T, L, N> dot(const mat<T, L, M> &lhs, const mat<T, M, N> &rhs) {
     return res;
 }
 
-
 // vector specific functions
-
-template <typename T, int N>
-using vec = mat<T, N, 1>;
 
 template <typename T, int N>
 constexpr typename vec<T, N>::value_type dot(const vec<T, N> &lhs,
@@ -217,6 +332,11 @@ constexpr typename vec<T, N>::value_type dot(const vec<T, N> &lhs,
 template <typename T, int N>
 constexpr typename vec<T, N>::value_type norm2(const vec<T, N> &v) {
     return dot(v, v);
+}
+
+template <typename T, int N>
+constexpr bool near(const vec<T, N> &v1, const vec<T, N> &v2, T eps) {
+    return norm2(v2 - v1) < eps * eps;
 }
 
 template <typename T>
