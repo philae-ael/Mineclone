@@ -85,15 +85,12 @@ struct mat {
         return details<M>::get(data, i, j);
     }
 
-    constexpr mat<T, M, 1> row(int i) const {
-        mat<T, M, 1> res;
-        std::copy(data[i], data[i + 1], res.data);
-    }
-
     constexpr iterator begin() { return iterator(data); }
     constexpr iterator end() { return iterator(data + N); }
     constexpr const_iterator cbegin() const { return const_iterator(data); }
     constexpr const_iterator cend() const { return const_iterator(data + N); }
+
+    pointer ptr() { return &details<M>::get(data, 0, 0); }
 
     constexpr mat &operator-() {
         std::transform(this->cbegin(), this->cend(), this->begin(),
@@ -164,16 +161,14 @@ struct mat {
     //
     constexpr mat friend operator*(const value_type scalar, const mat &rhs) {
         mat res;
-        std::transform(
-            rhs.cbegin(), rhs.cend(), res.begin(),
-            [scalar](const value_type &rhs_) { return scalar * rhs_; });
+        std::transform(rhs.cbegin(), rhs.cend(), res.begin(),
+                       [scalar](const auto &rhs_) { return scalar * rhs_; });
         return res;
     }
     constexpr mat friend operator+(const value_type scalar, const mat &rhs) {
         mat res;
-        std::transform(
-            rhs.cbegin(), rhs.cend(), res.begin(),
-            [scalar](const value_type &rhs_) { return scalar + rhs_; });
+        std::transform(rhs.cbegin(), rhs.cend(), res.begin(),
+                       [scalar](const auto &rhs_) { return scalar + rhs_; });
         return res;
     }
 };
@@ -254,7 +249,8 @@ constexpr vec<T, N> normalize(const vec<T, N> &v) {
 
 template <typename T>
 constexpr mat<T, 2, 2> rotate(double angle) {
-    return {{{cos(angle), sin(angle)}, {-sin(angle), cos(angle)}}};
+    return {{{static_cast<T>(cos(angle)), static_cast<T>(sin(angle))},
+             {static_cast<T>(-sin(angle)), static_cast<T>(cos(angle))}}};
 }
 
 template <typename T, int L, int M, int N>
@@ -273,10 +269,12 @@ constexpr mat<T, 3, 3> rotate(double angle, vec<T, 3> axis) {
     using vec3T = vec<T, 3>;
     axis = normalize(axis);
 
-    // either 1, 0, 0 or 0, 1, 0 is not parallel to p1, thus we can find a perpendicular vector to axis
+    // either 1, 0, 0 or 0, 1, 0 is not parallel to p1, thus we can find a
+    // perpendicular vector to axis
     vec3T p1 = wedge(axis, {1, 0, 0});
     p1 = normalize(p1);
-    if(norm2(p1) < 0.1){ // NOLINT: if this is verified, axis is parallel to axis
+    if (norm2(p1) <
+        0.1) {  // NOLINT: if this is verified, axis is parallel to axis
         p1 = wedge(axis, {0, 1, 0});
         p1 = normalize(p1);
     }

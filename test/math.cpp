@@ -1,7 +1,7 @@
 #include "engine/utils/math.h"
 
-#include <cmath>
 #include <catch2/catch.hpp>
+#include <cmath>
 #include <iostream>
 
 using math::mat2i;
@@ -43,6 +43,34 @@ TEST_CASE("math::vec norm, wedge, norm2") {
 
 TEST_CASE("math::vec +=/-=/...") {
     auto l1 = []() constexpr {
+        mat2i m{{{1, 2}, {3, 4}}};
+        m += mat2i{{{1, 2}, {3, 4}}};
+        return m;
+    };
+    STATIC_REQUIRE(l1() == mat2i{{{2, 4}, {6, 8}}});
+
+    auto l2 = []() constexpr {
+        mat2i m{{{1, 2}, {3, 4}}};
+        m -= mat2i{{{1, 2}, {3, 4}}};
+        return m;
+    };
+    STATIC_REQUIRE(l2() == mat2i{});
+
+    auto l3 = []() constexpr {
+        mat2i m{{{1, 2}, {3, 4}}};
+        m /= mat2i{{{1, 2}, {3, 4}}};
+        return m;
+    };
+    STATIC_REQUIRE(l3() == mat2i{{{1, 1}, {1, 1}}});
+    auto l4 = []() constexpr {
+        mat2i m{{{1, 2}, {3, 4}}};
+        m *= mat2i{{{1, 2}, {3, 4}}};
+        return m;
+    };
+    STATIC_REQUIRE(l4() == mat2i{{{1, 4}, {9, 16}}});
+}
+TEST_CASE("math::mat +=/-=/...") {
+    auto l1 = []() constexpr {
         vec3i v{0, 0, 0};
         v += vec3i{1, 2, 3};
         return v;
@@ -67,6 +95,11 @@ TEST_CASE("math::vec +=/-=/...") {
         return v;
     };
     STATIC_REQUIRE(l4() == vec3i{1, 3, 4});
+}
+
+TEST_CASE("math::mat scalar `op` mat") {
+    STATIC_REQUIRE(3 * mat2i{{{1, 2}, {3, 4}}} == mat2i{{{3, 6}, {9, 12}}});
+    STATIC_REQUIRE(3 + mat2i{{{1, 2}, {3, 4}}} == mat2i{{{4, 5}, {6, 7}}});
 }
 
 TEST_CASE("math::vec scalar `op` vector") {
@@ -105,33 +138,35 @@ TEST_CASE("math::mat dot") {
 
 TEST_CASE("math near") {
     constexpr double eps = 1e-1;
-    STATIC_REQUIRE(math::near(math::vec2d{-2., 1.}, math::vec2d{-2., 1.}, eps));// NOLINT
-    STATIC_REQUIRE_FALSE(math::near(math::vec2d{-2. + eps, 1.}, math::vec2d{-2., 1.}, eps));// NOLINT
+    STATIC_REQUIRE(
+        math::near(math::vec2d{-2., 1.}, math::vec2d{-2., 1.}, eps));  // NOLINT
+    STATIC_REQUIRE_FALSE(math::near(math::vec2d{-2. + eps, 1.},
+                                    math::vec2d{-2., 1.}, eps));  // NOLINT
 }
 TEST_CASE("math rotate") {
     constexpr double eps = 1e-1;
     constexpr math::vec2d v1{1, 2};
-    constexpr math::mat2d rot = math::rotate<double>(M_PI/2);
+    constexpr math::mat2d rot = math::rotate<double>(M_PI / 2);
 
     constexpr auto res = math::dot(rot, v1);
 
-    STATIC_REQUIRE(math::near(res, math::vec2d{2., -1.}, eps));// NOLINT
-    
+    STATIC_REQUIRE(math::near(res, math::vec2d{2., -1.}, eps));  // NOLINT
+
     constexpr math::vec3d v2{1, 0, 0};
-    constexpr math::mat3d rot2 = math::rotate(M_PI/2, v2);
+    constexpr math::mat3d rot2 = math::rotate(M_PI / 2, v2);
 
     constexpr auto res2 = math::dot(rot2, v2);
-    
-    STATIC_REQUIRE(math::near(res2, v2, eps));// NOLINT
+
+    STATIC_REQUIRE(math::near(res2, v2, eps));  // NOLINT
 }
 
 TEST_CASE("math constexpr") {
-    auto abs = [](auto x) constexpr -> decltype(x){
-        if(x<0) return -x;
+    auto abs = [](auto x) constexpr->decltype(x) {
+        if (x < 0) return -x;
         return x;
     };
     constexpr double eps = 1e-1;
-    STATIC_REQUIRE(abs(math::cos(M_PI) + 1) < eps); // NOLINT
-    STATIC_REQUIRE(abs(math::sqrt(4) - 2) < eps); // NOLINT
-    STATIC_REQUIRE(abs(math::sqrt(1) - 1) < eps); // NOLINT
+    STATIC_REQUIRE(abs(math::cos(M_PI) + 1) < eps);  // NOLINT
+    STATIC_REQUIRE(abs(math::sqrt(4) - 2) < eps);    // NOLINT
+    STATIC_REQUIRE(abs(math::sqrt(1) - 1) < eps);    // NOLINT
 }
