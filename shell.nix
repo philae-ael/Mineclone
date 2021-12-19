@@ -2,7 +2,7 @@
 pkgs.mkShell.override
 {
   stdenv = pkgs.llvmPackages_latest.stdenv;
-  # stdenv = pkgs.stdenvGcc11;
+  # stdenv = pkgs.gcc11Stdenv;
 }
 {
   buildInputs = with pkgs; [
