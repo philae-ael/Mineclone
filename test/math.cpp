@@ -122,6 +122,7 @@ TEST_CASE("math::mat dot") {
     constexpr math::mat<int, 1, 2> m1{{{1, 2}}};
     constexpr math::mat<int, 2, 1> m2{1, 2};
 
+    STATIC_REQUIRE(math::dot(m1, m2) == m1 % m2);
     STATIC_REQUIRE(math::dot(m1, m2) == math::mat<int, 1, 1>{5});
 
     constexpr math::mat<int, 2, 2> m3{{{0, 1}, {1, 0}}};
