@@ -62,6 +62,7 @@ pkgs.mkShell.override
     cmake
     pkg-config
     gdb
+    renderdoc
 
     # Language servers
     cmake-language-server
