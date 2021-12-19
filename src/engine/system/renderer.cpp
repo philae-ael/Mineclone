@@ -50,12 +50,12 @@ void drawCube(double t) {
     auto with_shader = shader->use();
 
     const auto rot =
-        math::rotate<float, 4>(M_PI * std::cos(t), math::vec3f{1.f, 1.f, 0.f});
+        math::rotate<float, 4>(M_PI * std::cos(t), math::vec3f{0, 0, 1});
     const auto transl =
-        math::translation<float>(0, 0, -2 + std::cos(t) * (1.f / 4.f));  // NOLINT
-    const auto model_trans = transl % rot;
+        math::translation<float>(0, 0, -3);  // NOLINT
+    const auto model_trans =  transl % rot % math::scale<float>(13);
     const auto world_trans = math::identity<float, 4>();
-    const auto proj = math::projection<float>(4. / 3.);  // NOLINT
+    const auto proj = math::projection<float>(4. / 3., M_PI/2, 2, 10);  // NOLINT
     math::mat4f transform4 = proj % world_trans % model_trans;
 
     GLint transformUnif = shader->getUniformLocation("transform");
