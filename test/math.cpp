@@ -3,6 +3,7 @@
 #include <catch2/catch.hpp>
 #include <cmath>
 #include <iostream>
+#include "engine/utils/mat.h"
 
 using math::mat2i;
 using math::vec3i;
@@ -137,14 +138,14 @@ TEST_CASE("math::mat dot") {
     STATIC_REQUIRE(math::dot(m5, v) == math::vec2i{1, -2});
 }
 
-TEST_CASE("math near") {
+TEST_CASE("math::mat near") {
     constexpr double eps = 1e-1;
     STATIC_REQUIRE(
         math::near(math::vec2d{-2., 1.}, math::vec2d{-2., 1.}, eps));  // NOLINT
-    STATIC_REQUIRE_FALSE(math::near(math::vec2d{-2. + eps, 1.},
+    STATIC_REQUIRE_FALSE(math::near(math::vec2d{-2. + eps, 1.}, // NOLINT
                                     math::vec2d{-2., 1.}, eps));  // NOLINT
 }
-TEST_CASE("math rotate") {
+TEST_CASE("math::mat rotate") {
     constexpr double eps = 1e-1;
     constexpr math::vec2d v1{1, 2};
     constexpr math::mat2d rot = math::rotate<double>(M_PI / 2);
@@ -154,14 +155,21 @@ TEST_CASE("math rotate") {
     STATIC_REQUIRE(math::near(res, math::vec2d{2., -1.}, eps));  // NOLINT
 
     constexpr math::vec3d v2{1, 0, 0};
-    constexpr math::mat3d rot2 = math::rotate(M_PI / 2, v2);
+    constexpr math::mat3d rot2 = math::rotate<double, 3>(M_PI / 2, v2);
 
     constexpr auto res2 = math::dot(rot2, v2);
 
     STATIC_REQUIRE(math::near(res2, v2, eps));  // NOLINT
+    
+    math::vec3d v3{1, 1, 0};
+    math::mat3d rot3 = math::rotate<double, 3>(M_PI / 2, v3);
+
+    auto res3 = math::dot(rot3, v3);
+
+    REQUIRE(math::near(res3, v3, eps));  // NOLINT
 }
 
-TEST_CASE("math constexpr") {
+TEST_CASE("math constexpr functions") {
     auto abs = [](auto x) constexpr->decltype(x) {
         if (x < 0) return -x;
         return x;
@@ -170,4 +178,19 @@ TEST_CASE("math constexpr") {
     STATIC_REQUIRE(abs(math::cos(M_PI) + 1) < eps);  // NOLINT
     STATIC_REQUIRE(abs(math::sqrt(4) - 2) < eps);    // NOLINT
     STATIC_REQUIRE(abs(math::sqrt(1) - 1) < eps);    // NOLINT
+}
+
+
+TEST_CASE("math::mat diag"){
+    constexpr math::mat<float, 2, 2> d = math::diag<float>(1, -1);
+
+    STATIC_REQUIRE(d == math::mat2f{{{1, 0}, {0, -1}}});
+
+}
+
+TEST_CASE("math::mat translate"){
+    constexpr auto trl = math::translation<float>(1, 0, 3);
+
+    STATIC_REQUIRE(trl % math::vec4f{0, 0, 0, 1} == math::vec4f{1, 0, 3, 1});
+
 }

@@ -11,6 +11,8 @@ add_executable(mineclone_tests
   math.cpp
   )
 
+target_compile_options(mineclone_tests PRIVATE -Og)
+
 target_include_directories(mineclone_tests PRIVATE ../src/)
 target_link_libraries(mineclone_tests PRIVATE Catch2::Catch2)
 

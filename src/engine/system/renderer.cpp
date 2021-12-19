@@ -14,10 +14,10 @@ GLuint VBO = 0;
 GLuint VAO = 0;
 
 std::array vertices{
-    math::vec3f{-1, -1, 0},
-    math::vec3f{1, -1, 0},
-    math::vec3f{-1, 1, 0},
     math::vec3f{1, 1, 0},
+    math::vec3f{-1, 1, 0},
+    math::vec3f{1, -1, 0},
+    math::vec3f{-1, -1, 0},
 };
 
 std::optional<Shader> shader;
@@ -37,6 +37,7 @@ void drawCubeInit() {
                  GL_STATIC_DRAW);
 
     GLint posAttrib = shader->getAttribLocation("in_position");
+
     glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(posAttrib);
 }
@@ -48,16 +49,17 @@ Renderer::Renderer() : begin{std::chrono::steady_clock::now()} {
 void drawCube(double t) {
     auto with_shader = shader->use();
 
-    math::mat3f scale =
-        std::cos(t) * (1.f / 4.f) * math::identity<float, 3>();  // NOLINT
-    math::mat3f rot =
-        math::rotate(M_PI * std::cos(t), math::vec3f{0.f, 0.f, -1.f});
-    auto transform3 = math::dot(rot, scale);
-
-    math::mat4f transform4 = math::extend<float, 3, 3, 4>(transform3);
+    const auto rot =
+        math::rotate<float, 4>(M_PI * std::cos(t), math::vec3f{1.f, 1.f, 0.f});
+    const auto transl =
+        math::translation<float>(0, 0, -2 + std::cos(t) * (1.f / 4.f));  // NOLINT
+    const auto model_trans = transl % rot;
+    const auto world_trans = math::identity<float, 4>();
+    const auto proj = math::projection<float>(4. / 3.);  // NOLINT
+    math::mat4f transform4 = proj % world_trans % model_trans;
 
     GLint transformUnif = shader->getUniformLocation("transform");
-    glUniformMatrix4fv(transformUnif, 1, GL_FALSE, transform4.ptr());
+    glUniformMatrix4fv(transformUnif, 1, GL_TRUE, transform4.ptr());
 
     glEnableVertexAttribArray(0);
     glBindVertexArray(VAO);

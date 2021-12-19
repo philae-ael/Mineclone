@@ -11,8 +11,8 @@
 Mineclone::Mineclone() {
     enum class WinInitError { WE_SUCCESS, WE_CREATION };
     auto createWindow = [this]() -> WinInitError {
-        const int win_width = 500;
-        const int win_height = 500;
+        const int win_width = 800;
+        const int win_height = 600;
         glfwInit();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);

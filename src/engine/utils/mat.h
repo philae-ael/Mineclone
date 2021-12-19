@@ -1,11 +1,12 @@
 #ifndef MAT_H_
 #define MAT_H_
 
-#include "constexpr_functions.h"
-
 #include <algorithm>
+#include <concepts>
 #include <functional>
 #include <numeric>
+
+#include "constexpr_functions.h"
 namespace math {
 
 template <typename T, int N, int M>
@@ -182,6 +183,21 @@ struct mat {
 template <typename T, int N>
 using vec = mat<T, N, 1>;
 
+template <typename T>
+constexpr auto diag(const T d1, std::convertible_to<const T> auto... args)
+    -> mat<T, 1 + sizeof...(args), 1 + sizeof...(args)> {
+    const unsigned int N = 1 + sizeof...(args);
+
+    std::array<T, N> argv{d1, static_cast<const T>(args)...};
+    mat<T, N, N> res{};
+
+    for (unsigned int i = 0; i < 1 + sizeof...(args); i++) {
+        res[i][i] = argv[i];
+    }
+
+    return res;
+}
+
 template <typename T, int N>
 constexpr mat<T, N, N> identity() {
     mat<T, N, N> res{};
@@ -191,10 +207,28 @@ constexpr mat<T, N, N> identity() {
     return res;
 }
 
+template <typename T>
+constexpr mat<T, 4, 4> translation(T x, T y, T z) { // NOLINT
+    auto res = identity<T, 4>();
+    res[0][3] = x;
+    res[1][3] = y;
+    res[2][3] = z;
+    return res;
+}
+
+template <typename T>
+constexpr mat<T, 4, 4> projection(T aspect_ratio /*== w/h*/) {
+    auto res = diag<T>(1, aspect_ratio, -1, 0);
+    res[3][2] = -1;
+    return res;
+}
+
 template <typename T, int N>
 constexpr vec<T, N> normalize(const vec<T, N> &v) {
     auto n = norm2(v);
-    if (n == 0.) return v;  // v == 0 0 0...  so it doesnt really matter
+    if (n == 0.)
+        return v;  // v == 0 0 0...  so it doesnt really matter allow constexpr
+                   // evaluation
     return sqrt(1 / n) * v;
 }
 
@@ -215,8 +249,10 @@ constexpr mat<T, N, N> extend(mat<T, L, M> m) {
     return res;
 }
 
-template <typename T>
-constexpr mat<T, 3, 3> rotate(double angle, vec<T, 3> axis) {
+template <typename T, int N>
+constexpr mat<T, N, N> rotate(double angle, vec<T, 3> axis) {
+    static_assert(N >= 3);
+
     using vec3T = vec<T, 3>;
     axis = normalize(axis);
 
@@ -225,7 +261,7 @@ constexpr mat<T, 3, 3> rotate(double angle, vec<T, 3> axis) {
     vec3T p1 = wedge(axis, {1, 0, 0});
     p1 = normalize(p1);
     if (norm2(p1) <
-        0.1) {  // NOLINT: if this is verified, axis is parallel to axis
+        0.1) {  // NOLINT: if this is verified, axis is parallel to 1 0 0
         p1 = wedge(axis, {0, 1, 0});
         p1 = normalize(p1);
     }
@@ -237,10 +273,10 @@ constexpr mat<T, 3, 3> rotate(double angle, vec<T, 3> axis) {
     p2 = normalize(p2);
 
     mat<T, 3, 3> rot3 = extend<T, 2, 2, 3>(rotate<T>(angle));
-    mat<T, 3, 3> P = mat<T, 3, 3>{p1, p2, axis};
-    mat<T, 3, 3> P_inv = transpose(P);
+    mat<T, 3, 3> P_inv = mat<T, 3, 3>{p1, p2, axis}; // Care, p1 will be first row and so on
+    mat<T, 3, 3> P = transpose(P_inv);
 
-    return dot(dot(P, rot3), P_inv);
+    return extend<T, 3, 3, N>(dot(dot(P, rot3), P_inv));
 }
 
 template <typename T, int N, int M>
