@@ -241,8 +241,8 @@ constexpr mat<T, 4, 4> frustrum(T near, T far, T left, T right, T bottom, // NOL
     // then we want to map y from b, t to -1, 1, easy
     // x -> 2*(x - b)/(t - b) - 1 = 2x/(b+t) + (b + t)/(t-b)
     // just remember that we are divided by z afterwards
-    const auto A = -(near + far) / (near - far);
-    const auto B = -2 * near * far / (near - far);
+    const auto A = (near + far) / (near - far);
+    const auto B = 2 * near * far / (near - far);
     const auto res = mat<T, 4, 4>{{
         {2 * near / (right - left), 0, (right + left) / (right - left), 0},
         {0, 2 * near / (top - bottom), (bottom + top) / (top - bottom), 0},
@@ -256,8 +256,8 @@ template <typename T>
 mat<T, 4, 4> projection(T aspect_ratio, T fov, T near, T far) { // NOLINT
     const auto top = std::tan(fov/2) * far;
     const auto bottom = -top;
-    const auto left= top*aspect_ratio;
-    const auto right= -left;
+    const auto right = top*aspect_ratio;
+    const auto left = -right;
 
     // Note that object of radius up to z*right/(2 near) will be drawn 
     // With fov of pi/2, object of size up to z*far/(2*near) 
