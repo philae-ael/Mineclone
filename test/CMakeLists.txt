@@ -9,6 +9,7 @@ include(Catch)
 add_executable(mineclone_tests
   main.cpp
   math.cpp
+  math_opengl.cpp
   )
 
 target_compile_options(mineclone_tests PRIVATE -Og)

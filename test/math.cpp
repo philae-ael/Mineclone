@@ -1,9 +1,7 @@
-#include "engine/utils/math.h"
+#include "engine/utils/mat.h"
+#include "engine/utils/constexpr_functions.h"
 
 #include <catch2/catch.hpp>
-#include <cmath>
-#include <iostream>
-#include "engine/utils/mat.h"
 
 using math::mat2i;
 using math::vec3i;
@@ -12,8 +10,6 @@ TEST_CASE("math::vec basic operations") {
     STATIC_REQUIRE(vec3i{0, 0, 0} == vec3i{});
     STATIC_REQUIRE(vec3i{1, 2, 3} + vec3i{3, 2, 1} == vec3i{4, 4, 4});
     STATIC_REQUIRE(vec3i{1, 2, 3} - vec3i{3, 2, 1} == vec3i{-2, 0, 2});
-    STATIC_REQUIRE(vec3i{1, 2, 3} * vec3i{3, 2, 1} == vec3i{3, 4, 3});
-    STATIC_REQUIRE(vec3i{4, 6, 2} / vec3i{2, 2, 1} == vec3i{2, 3, 2});
     STATIC_REQUIRE(-vec3i{1, 2, 1} == vec3i{-1, -2, -1});
 }
 
@@ -23,10 +19,6 @@ TEST_CASE("math::mat basic operations") {
                    mat2i{{{1, 2}, {1, -1}}});
     STATIC_REQUIRE(mat2i{{{0, 0}, {-1, -2}}} - mat2i{{{1, 2}, {2, 1}}} ==
                    mat2i{{{-1, -2}, {-3, -3}}});
-    STATIC_REQUIRE(mat2i{{{0, 0}, {-1, -2}}} * mat2i{{{1, 2}, {2, 1}}} ==
-                   mat2i{{{0, 0}, {-2, -2}}});
-    STATIC_REQUIRE(mat2i{{{0, 0}, {1, 2}}} / mat2i{{{1, 2}, {1, 1}}} ==
-                   mat2i{{{0, 0}, {1, 2}}});
     STATIC_REQUIRE(-mat2i{{{0, 0}, {-1, -2}}} == mat2i{{{0, 0}, {1, 2}}});
 }
 
@@ -56,19 +48,6 @@ TEST_CASE("math::vec +=/-=/...") {
         return m;
     };
     STATIC_REQUIRE(l2() == mat2i{});
-
-    auto l3 = []() constexpr {
-        mat2i m{{{1, 2}, {3, 4}}};
-        m /= mat2i{{{1, 2}, {3, 4}}};
-        return m;
-    };
-    STATIC_REQUIRE(l3() == mat2i{{{1, 1}, {1, 1}}});
-    auto l4 = []() constexpr {
-        mat2i m{{{1, 2}, {3, 4}}};
-        m *= mat2i{{{1, 2}, {3, 4}}};
-        return m;
-    };
-    STATIC_REQUIRE(l4() == mat2i{{{1, 4}, {9, 16}}});
 }
 TEST_CASE("math::mat +=/-=/...") {
     auto l1 = []() constexpr {
@@ -84,18 +63,6 @@ TEST_CASE("math::mat +=/-=/...") {
         return v;
     };
     STATIC_REQUIRE(l2() == vec3i{-1, -2, -3});
-    auto l3 = []() constexpr {
-        vec3i v{1, 0, 3};
-        v *= vec3i{1, 2, 3};
-        return v;
-    };
-    STATIC_REQUIRE(l3() == vec3i{1, 0, 9});
-    auto l4 = []() constexpr {
-        vec3i v{2, 3, 4};
-        v /= vec3i{2, 1, 1};
-        return v;
-    };
-    STATIC_REQUIRE(l4() == vec3i{1, 3, 4});
 }
 
 TEST_CASE("math::mat scalar `op` mat") {
@@ -123,7 +90,7 @@ TEST_CASE("math::mat dot") {
     constexpr math::mat<int, 1, 2> m1{{{1, 2}}};
     constexpr math::mat<int, 2, 1> m2{1, 2};
 
-    STATIC_REQUIRE(math::dot(m1, m2) == m1 % m2);
+    STATIC_REQUIRE(math::dot(m1, m2) == m1 * m2);
     STATIC_REQUIRE(math::dot(m1, m2) == math::mat<int, 1, 1>{5});
 
     constexpr math::mat<int, 2, 2> m3{{{0, 1}, {1, 0}}};
@@ -142,8 +109,8 @@ TEST_CASE("math::mat near") {
     constexpr double eps = 1e-1;
     STATIC_REQUIRE(
         math::near(math::vec2d{-2., 1.}, math::vec2d{-2., 1.}, eps));  // NOLINT
-    STATIC_REQUIRE_FALSE(math::near(math::vec2d{-2. + eps, 1.}, // NOLINT
-                                    math::vec2d{-2., 1.}, eps));  // NOLINT
+    STATIC_REQUIRE_FALSE(math::near(math::vec2d{-2. + eps, 1.},        // NOLINT
+                                    math::vec2d{-2., 1.}, eps));       // NOLINT
 }
 TEST_CASE("math::mat rotate") {
     constexpr double eps = 1e-1;
@@ -160,7 +127,7 @@ TEST_CASE("math::mat rotate") {
     constexpr auto res2 = math::dot(rot2, v2);
 
     STATIC_REQUIRE(math::near(res2, v2, eps));  // NOLINT
-    
+
     math::vec3d v3{1, 1, 0};
     math::mat3d rot3 = math::rotate<double, 3>(M_PI / 2, v3);
 
@@ -180,17 +147,9 @@ TEST_CASE("math constexpr functions") {
     STATIC_REQUIRE(abs(math::sqrt(1) - 1) < eps);    // NOLINT
 }
 
-
-TEST_CASE("math::mat diag"){
+TEST_CASE("math::mat diag") {
     constexpr math::mat<float, 2, 2> d = math::diag<float>(1, -1);
 
     STATIC_REQUIRE(d == math::mat2f{{{1, 0}, {0, -1}}});
-
 }
 
-TEST_CASE("math::mat translate"){
-    constexpr auto trl = math::translation<float>(1, 0, 3);
-
-    STATIC_REQUIRE(trl % math::vec4f{0, 0, 0, 1} == math::vec4f{1, 0, 3, 1});
-
-}

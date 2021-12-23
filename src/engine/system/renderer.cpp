@@ -8,7 +8,8 @@
 
 #include "../asset.h"
 #include "../component/shader.h"
-#include "../utils/math.h"
+#include "../utils/mat.h"
+#include "../utils/mat_opengl.h"
 
 GLuint VBO = 0;
 GLuint VAO = 0;
@@ -103,7 +104,7 @@ void drawCube(double t) {
     const auto rot =
         math::rotate<float, 4>(M_PI / 2 * std::cos(t), math::vec3f{1, 1, 0});
     const auto transl = math::translation<float>(0, 0, -3);  // NOLINT
-   auto model_trans = rot % math::scale<float>(0.5);
+   auto model_trans = rot * math::scale<float>(0.5);
     auto world_trans = transl;
     auto proj = math::projection<float>(4. / 3., M_PI / 2, 1, 4);  // NOLINT
 

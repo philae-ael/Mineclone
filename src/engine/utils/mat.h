@@ -82,103 +82,88 @@ struct mat {
     constexpr const_reference at(int i, int j) const {
         return details<M>::get(data, i, j);
     }
-
+    // NOLINT
     constexpr iterator begin() { return iterator(data); }
     constexpr iterator end() { return iterator(data + N); }
     constexpr const_iterator cbegin() const { return const_iterator(data); }
     constexpr const_iterator cend() const { return const_iterator(data + N); }
 
     pointer ptr() { return &details<M>::get(data, 0, 0); }
-
-    constexpr mat &operator-() {
-        std::transform(this->cbegin(), this->cend(), this->begin(),
-                       [](auto x) { return -x; });
-        return *this;
-    }
-
-    constexpr friend bool operator==(const mat &lhs, const mat &rhs) {
-        return std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin());
-    }
-
-    constexpr mat &operator+=(const mat &rhs) {
-        std::transform(this->cbegin(), this->cend(), rhs.cbegin(),
-                       this->begin(), std::plus{});
-        return *this;
-    }
-
-    constexpr mat &operator-=(const mat &rhs) {
-        std::transform(this->cbegin(), this->cend(), rhs.cbegin(),
-                       this->begin(), std::minus{});
-        return *this;
-    }
-
-    constexpr mat &operator*=(const mat &rhs) {
-        std::transform(this->cbegin(), this->cend(), rhs.cbegin(),
-                       this->begin(), std::multiplies{});
-        return *this;
-    }
-
-    constexpr mat &operator/=(const mat &rhs) {
-        std::transform(this->cbegin(), this->cend(), rhs.cbegin(),
-                       this->begin(), std::divides{});
-        return *this;
-    }
-
-    constexpr mat friend operator*(const mat &lhs, const mat &rhs) {
-        mat res;
-        std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), res.begin(),
-                       std::multiplies{});
-        return res;
-    }
-
-    constexpr mat friend operator/(const mat &lhs, const mat &rhs) {
-        mat res;
-        std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), res.begin(),
-                       std::divides{});
-        return res;
-    }
-
-    constexpr mat friend operator+(const mat &lhs, const mat &rhs) {
-        mat res;
-        std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), res.begin(),
-                       std::plus{});
-        return res;
-    }
-
-    constexpr mat friend operator-(const mat &lhs, const mat &rhs) {
-        mat res;
-        std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), res.begin(),
-                       std::minus{});
-        return res;
-    }
-
-    //
-    // Operation with a scalar : v2 = scalar `op` v
-    // Note: There is no operator/, operator- (because i want the usual order
-    // scalar `op` to be respected), use resp. (1/x)*v, (-x)*v
-    //
-    constexpr mat friend operator*(const value_type scalar, const mat &rhs) {
-        mat res;
-        std::transform(rhs.cbegin(), rhs.cend(), res.begin(),
-                       [scalar](const auto &rhs_) { return scalar * rhs_; });
-        return res;
-    }
-    constexpr mat friend operator+(const value_type scalar, const mat &rhs) {
-        mat res;
-        std::transform(rhs.cbegin(), rhs.cend(), res.begin(),
-                       [scalar](const auto &rhs_) { return scalar + rhs_; });
-        return res;
-    }
-
-    template <int L>
-    // I have no other choice of operator because of precedences rules and bc i
-    // already use +-*/ At least % respects classic precedences rules with +-
-    // (but NOT with * /) and is left associative
-    constexpr friend mat<T, N, L> operator%(const mat<T, N, M> &rhs,
-                                            const mat<T, M, L> &lhs) {
-        return dot<T, N, M, L>(rhs, lhs);
-    }
 };
+
+template <typename T, int N, int M>
+constexpr mat<T, N, M> operator-(const mat<T, N, M> &rhs) {
+    mat<T, N, M> res;
+    std::transform(rhs.cbegin(), rhs.cend(), res.begin(),
+                   [](auto x) { return -x; });
+    return res;
+}
+
+template <typename T, int N, int M>
+constexpr bool operator==(const mat<T, N, M> &lhs, const mat<T, N, M> &rhs) {
+    return std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin());
+}
+
+template <typename T, int N, int M>
+constexpr mat<T, N, M> &operator+=(mat<T, N, M> &lhs, const mat<T, N, M> &rhs) {
+    std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), lhs.begin(),
+                   std::plus{});
+    return lhs;
+}
+
+template <typename T, int N, int M>
+constexpr mat<T, N, M> &operator-=(mat<T, N, M> &lhs, const mat<T, N, M> &rhs) {
+    std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), lhs.begin(),
+                   std::minus{});
+    return lhs;
+}
+
+template <typename T, int N, int M>
+constexpr mat<T, N, M> operator+(const mat<T, N, M> &lhs,
+                                 const mat<T, N, M> &rhs) {
+    mat<T, N, M> res;
+    std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), res.begin(),
+                   std::plus{});
+    return res;
+}
+
+template <typename T, int N, int M>
+constexpr mat<T, N, M> operator-(const mat<T, N, M> &lhs,
+                                 const mat<T, N, M> &rhs) {
+    mat<T, N, M> res;
+    std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), res.begin(),
+                   std::minus{});
+    return res;
+}
+
+//
+// Operation with a scalar : v2 = scalar `op` v
+// Note: There is no operator- (because i want the usual order
+// scalar `op` to be respected), use resp. (-x)*v
+//
+
+template <typename T, int N, int M>
+constexpr mat<T, N, M> operator+(const typename mat<T, N, M>::value_type scalar,
+                                 const mat<T, N, M> &rhs) {
+    mat<T, N, M> res;
+    std::transform(rhs.cbegin(), rhs.cend(), res.begin(),
+                   [scalar](const auto &rhs_) { return scalar + rhs_; });
+    return res;
+}
+template <typename T, int N, int M>
+constexpr mat<T, N, M> operator*(const typename mat<T, N, M>::value_type scalar,
+                                 const mat<T, N, M> &rhs) {
+    mat<T, N, M> res;
+    std::transform(rhs.cbegin(), rhs.cend(), res.begin(),
+                   [scalar](const auto &rhs_) { return scalar * rhs_; });
+    return res;
+}
+
+template <typename T, int N, int M, int L>
+constexpr mat<T, N, L> operator*(const mat<T, N, M> &rhs,
+                                 const mat<T, M, L> &lhs) {
+    return dot<T, N, M, L>(rhs, lhs);
+}
 
 template <typename T, int N>
 using vec = mat<T, N, 1>;
@@ -206,69 +191,6 @@ constexpr mat<T, N, N> identity() {
     }
     return res;
 }
-
-template <typename T>
-constexpr mat<T, 4, 4> translation(T x, T y, T z) {  // NOLINT
-    auto res = identity<T, 4>();
-    res[0][3] = x;
-    res[1][3] = y;
-    res[2][3] = z;
-    return res;
-}
-
-template <typename T>
-constexpr mat<T, 4, 4> frustrum(T near, T far, T left, T right, T bottom, // NOLINT
-                                  T top) {
-    // Let's remember that OpenGL will do two things
-    // - OpenGL clips all vertices such that
-    //      abs(x) < w, abs(y) < w or abs(z) < w
-    // - THEN OpenGL normalize w to 1
-    // Furthermore, remember that camera looks towards the -Oz direction
-    // Because we want perspective, let's put -z into w
-    // We want OpenGL to clip every z between near and far thus z should be
-    // mapped from near to far to R such that -near -> -near, -far-> far
-    // thus the 2 equations $-A*near + B = -near$ and $-A*far + B = far$
-    // We find $A = (n+f)/(n-f)$, $B = 2fn/(n-f)$
-    // Note that if f=infty, n = 0, u have A = 1, B = 0 !
-    //
-    // Then we want to project (x, y, z) onto the near plane
-    // why? it should works no matter what is whosen as projection plane
-    // because of the normalization, z -> 1 thus, if we wanna be linear,
-    // just multiply by n
-    //
-    // then we want to map x from l, r to -1, 1, easy
-    // x -> 2*(x - l)/(r - l) - 1 = 2x/(r+l) + (r + l)/(r-l)
-    // then we want to map y from b, t to -1, 1, easy
-    // x -> 2*(x - b)/(t - b) - 1 = 2x/(b+t) + (b + t)/(t-b)
-    // just remember that we are divided by z afterwards
-    const auto A = (near + far) / (near - far);
-    const auto B = 2 * near * far / (near - far);
-    const auto res = mat<T, 4, 4>{{
-        {2 * near / (right - left), 0, (right + left) / (right - left), 0},
-        {0, 2 * near / (top - bottom), (bottom + top) / (top - bottom), 0},
-        {0, 0, A, B},
-        {0, 0, -1, 0},
-    }};
-    return res;
-}
-
-template <typename T>
-mat<T, 4, 4> projection(T aspect_ratio, T fov, T near, T far) { // NOLINT
-    const auto top = std::tan(fov/2) * far;
-    const auto bottom = -top;
-    const auto right = top*aspect_ratio;
-    const auto left = -right;
-
-    // Note that object of radius up to z*right/(2 near) will be drawn 
-    // With fov of pi/2, object of size up to z*far/(2*near) 
-    return frustrum(near, far, left, right, bottom, top);
-}
-
-template <typename T>
-constexpr mat<T, 4, 4> scale(T s) { // NOLINT
-    return diag<T>(s, s, s, 1);
-}
-
 
 template <typename T, int N>
 constexpr vec<T, N> normalize(const vec<T, N> &v) {
@@ -352,12 +274,21 @@ constexpr mat<T, L, N> dot(const mat<T, L, M> &lhs, const mat<T, M, N> &rhs) {
     return res;
 }
 
+template <typename T, int N, int M>
+constexpr mat<T, N, M> componentwise_product(const mat<T, N, M> &lhs,
+                                             const mat<T, N, M> &rhs) {
+    mat<T, N, M> res;
+    std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), res.begin(),
+                   std::multiplies{});
+    return res;
+}
+
 // vector specific functions
 
 template <typename T, int N>
 constexpr typename vec<T, N>::value_type dot(const vec<T, N> &lhs,
                                              const vec<T, N> &rhs) {
-    const mat tmp = lhs * rhs;
+    const mat tmp = componentwise_product(lhs, rhs);
     return std::accumulate(tmp.cbegin(), tmp.cend(),
                            typename vec<T, N>::value_type{});
 }
