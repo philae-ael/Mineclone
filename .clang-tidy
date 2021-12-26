@@ -12,4 +12,5 @@ Checks: >
   -readability-implicit-bool-conversion,
   -readability-isolate-declaration,
   -readability-uppercase-literal-suffix,
-  -readability-braces-around-statements
+  -readability-braces-around-statements,
+  -bugprone-easily-swappable-parameters
