@@ -1,7 +1,7 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include <chrono>
+#include "world_renderer.h"
 
 class Renderer {
    public:
@@ -12,10 +12,10 @@ class Renderer {
     Renderer &operator=(const Renderer &) = delete;
     ~Renderer() = default;
 
-    void render() const;
+    void render();
 
    private:
-    std::chrono::steady_clock::time_point begin;
+    WorldRenderer world_renderer;
 };
 
 #endif  // !RENDERER_H

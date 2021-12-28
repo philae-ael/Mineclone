@@ -12,7 +12,7 @@ class Mineclone {
    public:
     Mineclone() /* throw */;
     ~Mineclone();
-    void run() const;
+    void run();
 
    private:
     // Allow to delay initialisation

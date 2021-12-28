@@ -44,7 +44,7 @@ Mineclone::Mineclone() {
 
 Mineclone::~Mineclone() { glfwTerminate(); }
 
-void Mineclone::run() const {
+void Mineclone::run() {
     while (!glfwWindowShouldClose(mWindow)) {
         renderer->render();
 
