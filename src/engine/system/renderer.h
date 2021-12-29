@@ -2,6 +2,7 @@
 #define RENDERER_H
 
 #include "world_renderer.h"
+#include "../component/camera.h"
 
 class Renderer {
    public:
@@ -16,6 +17,7 @@ class Renderer {
 
    private:
     WorldRenderer world_renderer;
+    Camera camera;
 };
 
 #endif  // !RENDERER_H

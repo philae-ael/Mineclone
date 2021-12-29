@@ -62,7 +62,7 @@ std::array vertices{
 
 };
 
-WorldRenderer::WorldRenderer() {
+WorldRenderer::WorldRenderer(Camera *camera): camera(camera) {
     std::string vertex_source = get_asset(AssetKind::AK_Shader, "base.vert");
     std::string fragment_source = get_asset(AssetKind::AK_Shader, "base.frag");
 
@@ -90,18 +90,17 @@ WorldRenderer::WorldRenderer() {
     glEnable(GL_DEPTH_TEST);
 }
 
-void renderOneBlock(const Shader& shader, int x, int y, int z, GLuint VAO,
-                    GLuint VBO) {
-    std::cout << x << " " << y << " " << z << std::endl;
+void renderOneBlock(const Camera& camera, const Shader& shader, int x, int y,
+                    int z, GLuint VAO, GLuint VBO) {
     glEnableVertexAttribArray(0);
     glBindVertexArray(VAO);
     auto with_shader = shader.use();
 
+    const auto scale = math::scale<float>(0.5);             // NOLINT
     const auto transl = math::translation<float>(x, y, z);  // NOLINT
-    auto model_trans = transl;
-    auto world_trans = math::rotate<float, 4>(M_PI / 3, {1, 0, 0}) *
-                       math::translation<float>(0, -5, -20);
-    auto proj = math::projection<float>(4. / 3., M_PI / 2, 1, 40);  // NOLINT
+    auto model_trans = transl * scale;
+    auto world_trans = math::translation<float>(0, 0, 0);
+    auto proj = getCameraMatrix(camera);
 
     GLint modelUnif = shader.getUniformLocation("model");
     GLint worldUnif = shader.getUniformLocation("world");
@@ -117,7 +116,10 @@ void renderOneBlock(const Shader& shader, int x, int y, int z, GLuint VAO,
 }
 
 void WorldRenderer::render() {
-    std::cout << "==" << std::endl;
+
+    camera->position = {0, 5, 0};
+    lookAt(*camera, {2, 0, 2});
+    camera->persp = math::projection<float>(1.333, M_PI/2, 1, 30);
     for (auto&& chunk : world.data) {
         // TODO write an iterator for chunk
         for (int x = 0; x < chunkWidth; x++) {
@@ -127,7 +129,8 @@ void WorldRenderer::render() {
 
                     if (block.type == BlockType::Empty) continue;
 
-                    renderOneBlock(*shader, chunkWidth * chunk.getId().x + x, y,
+                    renderOneBlock(*camera, *shader,
+                                   chunkWidth * chunk.getId().x + x, y,
                                    chunkWidth * chunk.getId().z + z, VAO, VBO);
                 }
             }

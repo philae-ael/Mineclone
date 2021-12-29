@@ -6,17 +6,19 @@
 #include <optional>
 
 #include "../component/shader.h"
+#include "../component/camera.h"
 #include "../component/world.h"
 
 class WorldRenderer {
    public:
-    WorldRenderer();
+    WorldRenderer(Camera* camera);
     WorldRenderer(WorldRenderer&) = delete;
     WorldRenderer(WorldRenderer&&) = delete;
     void render();
 
    private:
     World world;
+    Camera *camera;
     std::optional<Shader> shader;
 
     GLuint VBO = 0;
