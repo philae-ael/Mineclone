@@ -106,9 +106,9 @@ void renderOneBlock(const Shader& shader, int x, int y, int z, GLuint VAO,
     GLint modelUnif = shader.getUniformLocation("model");
     GLint worldUnif = shader.getUniformLocation("world");
     GLint projUnif = shader.getUniformLocation("proj");
-    glUniformMatrix4fv(modelUnif, 1, GL_FALSE, model_trans.ptr());
-    glUniformMatrix4fv(worldUnif, 1, GL_FALSE, world_trans.ptr());
-    glUniformMatrix4fv(projUnif, 1, GL_FALSE, proj.ptr());
+    glUniformMatrix4fv(modelUnif, 1, GL_TRUE, model_trans.ptr());
+    glUniformMatrix4fv(worldUnif, 1, GL_TRUE, world_trans.ptr());
+    glUniformMatrix4fv(projUnif, 1,  GL_TRUE, proj.ptr());
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
