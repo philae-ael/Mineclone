@@ -23,6 +23,7 @@ class WorldRenderer {
 
     GLuint VBO = 0;
     GLuint VAO = 0;
+    GLuint texture = 0;
 };
 
 #endif  // !WORLD_RENDERER_H

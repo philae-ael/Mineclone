@@ -7,10 +7,10 @@
 
 namespace fs = std::filesystem;
 
-enum class AssetKind { AK_Shader };
+enum class AssetKind { Shader, Texture };
 
 static const std::map<AssetKind, fs::path> asset_path = {
-    {AssetKind::AK_Shader, "shader"}, {}};
+    {AssetKind::Shader, "shader"}, {AssetKind::Texture, "texture"}};
 
 static const fs::path base_path{"./asset"};
 
