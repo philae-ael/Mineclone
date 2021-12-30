@@ -11,7 +11,10 @@ set(CMAKE_CXX_STANDARD 20)
 if(MSVC)
   add_compile_options(/W4 /WX)
 else()
-  add_compile_options(-Wall -Wextra -pedantic -Werror -std=c++2a)
+  add_compile_options(-Wall -Wextra -pedantic -Werror)
+
+  # Allow for shorter path in __FILE__ macro
+  add_compile_options("-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
 endif()
 
 
@@ -46,6 +49,8 @@ include_directories(${GLFW3_INCLUDE_DIRS})
 add_executable(mineclone
   src/main.cpp
   src/engine/mineclone.cpp
+  src/engine/utils/mat.cpp
+  src/engine/utils/logging.cpp
   src/engine/system/renderer.cpp
   src/engine/system/world_renderer.cpp
   src/engine/component/shader.cpp)

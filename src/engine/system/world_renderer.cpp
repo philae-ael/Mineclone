@@ -10,6 +10,7 @@
 #include "../component/shader.h"
 #include "../utils/mat.h"
 #include "../utils/mat_opengl.h"
+#include "../utils/logging.h"
 
 std::array vertices{
     std::array{math::vec3f{1, 1, 1}, math::vec3f{1, 0, 0}},
