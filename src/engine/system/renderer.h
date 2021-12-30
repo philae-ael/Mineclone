@@ -13,7 +13,9 @@ class Renderer {
     Renderer &operator=(const Renderer &) = delete;
     ~Renderer() = default;
 
+
     void render();
+    void setWindowSize(int width, int height);
 
    private:
     WorldRenderer world_renderer;

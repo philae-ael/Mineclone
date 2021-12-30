@@ -165,7 +165,6 @@ void WorldRenderer::render() {
     camera->position = {4, 5, 4};
     camera->lookAt({0, 0, 0});
 
-    camera->persp = math::projection<float>(1.333, M_PI / 2, 1, 30);
     for (auto&& chunk : world.data) {
         // TODO write an iterator for chunk
         for (int x = 0; x < chunkWidth; x++) {

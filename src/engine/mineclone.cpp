@@ -6,6 +6,7 @@
 
 #include <exception>
 #include <iostream>
+
 #include "system/renderer.h"
 
 Mineclone::Mineclone() {
@@ -18,7 +19,7 @@ Mineclone::Mineclone() {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-        glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+        glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
         mWindow = glfwCreateWindow(win_width, win_height, "Mineclone", nullptr,
                                    nullptr);
         if (mWindow == nullptr) return WinInitError::WE_CREATION;
@@ -39,7 +40,15 @@ Mineclone::Mineclone() {
             break;
     }
 
-    renderer.emplace(); 
+    renderer.emplace();
+    auto resize_callback = [](GLFWwindow* window, int width, int height) {
+        auto* self = (Mineclone*)glfwGetWindowUserPointer(window);
+        glViewport(0, 0, width, height);
+        self->renderer->setWindowSize(width, height);
+    };
+
+    glfwSetWindowUserPointer(mWindow, this);
+    glfwSetFramebufferSizeCallback(mWindow, resize_callback);
 }
 
 Mineclone::~Mineclone() { glfwTerminate(); }
