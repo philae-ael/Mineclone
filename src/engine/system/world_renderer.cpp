@@ -100,7 +100,7 @@ void renderOneBlock(const Camera& camera, const Shader& shader, int x, int y,
     const auto transl = math::translation<float>(x, y, z);  // NOLINT
     auto model_trans = transl * scale;
     auto world_trans = math::translation<float>(0, 0, 0);
-    auto proj = getCameraMatrix(camera);
+    auto proj = camera.getCameraMatrix();
 
     GLint modelUnif = shader.getUniformLocation("model");
     GLint worldUnif = shader.getUniformLocation("world");
@@ -118,7 +118,8 @@ void renderOneBlock(const Camera& camera, const Shader& shader, int x, int y,
 void WorldRenderer::render() {
 
     camera->position = {0, 5, 0};
-    lookAt(*camera, {2, 0, 2});
+    camera->lookAt({2, 0, 2});
+
     camera->persp = math::projection<float>(1.333, M_PI/2, 1, 30);
     for (auto&& chunk : world.data) {
         // TODO write an iterator for chunk

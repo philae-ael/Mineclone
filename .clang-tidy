@@ -1,9 +1,11 @@
 Checks: >
   -*,
   bugprone-*,
+  -bugprone-easily-swappable-parameters,
   clang-diagnostic-*,
   -clang-diagnostic-unused-command-line-argument,
   misc-*,
+  -misc-non-private-member-variables-in-classes,
   modernize-*,
   -modernize-deprecated-headers,
   -modernize-use-trailing-return-type,
@@ -13,4 +15,3 @@ Checks: >
   -readability-isolate-declaration,
   -readability-uppercase-literal-suffix,
   -readability-braces-around-statements,
-  -bugprone-easily-swappable-parameters
