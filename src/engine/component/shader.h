@@ -8,6 +8,8 @@
 #include <iostream>
 #include <string>
 
+#include "../utils/logging.h"
+
 class Shader {
    private:
     /* The aim of this class is to use RAII to when a shader is in use
@@ -17,7 +19,7 @@ class Shader {
         UseShaderWithRAII(GLuint shader_program) {
 #ifdef DEBUG
             if (in_use_shader_program != 0) {
-                std::cout << "Shader program is being overwriten. Is it "
+                Logger::get() << LogLevel::Warning << "Shader program is being overwriten. Is it "
                              "intentionnal ?\n";
             }
             in_use_shader_program = shader_program;

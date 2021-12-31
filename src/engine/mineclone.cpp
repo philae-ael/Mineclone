@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "system/renderer.h"
+#include "utils/logging.h"
 
 Mineclone::Mineclone() {
     enum class WinInitError { WE_SUCCESS, WE_CREATION };
@@ -26,14 +27,15 @@ Mineclone::Mineclone() {
 
         glfwMakeContextCurrent(mWindow);
         gladLoadGL();
-        std::cout << "Opengl version: " << glGetString(GL_VERSION) << "\n";
+        Logger::get() << LogLevel::Info
+              << "Opengl version: " << glGetString(GL_VERSION) << "\n";
         return WinInitError::WE_SUCCESS;
     };
 
     WinInitError error = createWindow();
     switch (error) {
         case WinInitError::WE_CREATION:
-            std::cout << "Error while creating window, Bye!\n";
+            Logger::get() << LogLevel::Error << "Error while creating window, Bye!\n";
             throw std::runtime_error("Error while creating window");
             break;
         case WinInitError::WE_SUCCESS:

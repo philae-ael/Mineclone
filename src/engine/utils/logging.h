@@ -3,16 +3,14 @@
 
 #include <compare>
 #include <iostream>
+#include <source_location>
 #include <sstream>
 #include <string>
 
-#define LOG log_(__FILE__, __func__)
-
 enum class LogLevel { Trace, Info, Warning, Error };
 
-inline std::strong_ordering operator<=>(const LogLevel& l1,
-                                        const LogLevel& l2) {
-    return (const int)l1 <=> (const int)l2;
+inline std::strong_ordering operator<=>(LogLevel l1, LogLevel l2) {
+    return (int)l1 <=> (int)l2;
 }
 
 // Can I return that ? I hope strings are placed in .data
@@ -31,57 +29,59 @@ inline const char* logColor(LogLevel lvl) {
             return "\033[31m";  // Red
             break;
     }
+    return "";
 }
 
 inline const char* logResetColor() { return "\033[0m"; }
 
 class Logger {
    public:
-    Logger(std::string log_string, std::ostream* stream,
-           LogLevel log_level = LogLevel::Info)
+    Logger(std::string log_string, LogLevel log_level = LogLevel::Trace,
+           std::ostream& stream = std::cout)
         : minimum_log_level(log_level),
           stream(stream),
           log_string(std::move(log_string)) {}
-    Logger(Logger&& l) noexcept {
-        stream = l.stream;
-        l.stream = nullptr;
-    }
+    Logger(Logger&& l) noexcept
+        : minimum_log_level(l.minimum_log_level),
+          stream(l.stream),
+          log_string(l.log_string) {}
 
     // There should only be one instance used at anytime
     class LoggerStream {
        public:
-        LoggerStream(std::ostream* stream, LogLevel log_level)
-            : minimum_log_level(log_level), stream(stream) {
-            if (stream) stream_flags = stream->flags();
-        }
-        LoggerStream(LoggerStream& l) =
-            delete;  // This class should ONLY be lvalue
-        LoggerStream& operator=(LoggerStream& l) = delete;
-        LoggerStream(LoggerStream&& l) noexcept {
-            stream = l.stream;
-            l.stream = nullptr;
-        }
-
         LoggerStream& operator<<(LogLevel lvl) {
             log_level = lvl;
             return *this;
         }
 
         LoggerStream& operator<<(auto rhs) {
-            if (stream && log_level >= minimum_log_level)
-                *stream << logColor(log_level) << rhs << logResetColor();
+            if (log_level >= minimum_log_level)
+                stream << logColor(log_level) << rhs << logResetColor();
             return *this;
         }
         ~LoggerStream() {
-            (*this) << "\n";
-            if (stream) stream->flags(stream_flags);
+            stream << "\n";
+            stream.flags(stream_flags);
         }
 
+        LoggerStream(LoggerStream& l) =
+            delete;  // This class should ONLY be lvalue
+        LoggerStream& operator=(LoggerStream& l) = delete;
+
        private:
+        LoggerStream(std::ostream& stream, LogLevel minimum_log_level)
+            : log_level(minimum_log_level),
+              minimum_log_level(minimum_log_level),
+              stream(stream) {
+            stream_flags = stream.flags();
+        }
+        LoggerStream(LoggerStream&& l) noexcept : stream(l.stream) {}
         LogLevel log_level;
         LogLevel minimum_log_level;
-        std::ostream* stream = nullptr;
+        std::ostream& stream;
         std::ios::fmtflags stream_flags;
+
+        friend Logger;
     };
 
     LoggerStream operator<<(LogLevel lvl) {
@@ -95,21 +95,22 @@ class Logger {
         return s;
     };
 
-    static void set_global_log_level(LogLevel lvl){
-        global_log_level = lvl;
+    static void set_global_log_level(LogLevel lvl) { global_log_level = lvl; }
+
+    static Logger get(
+        LogLevel lvl = LogLevel::Trace, const std::string& category = "",
+        const std::source_location location = std::source_location::current()) {
+        std::ostringstream ss;
+        ss << "[" << category << (category.empty () ? "" : ": ") << location.function_name() << ":"
+           << location.line() << "] ";
+        return {ss.str(), lvl};
     }
 
    private:
     LogLevel minimum_log_level;
     static LogLevel global_log_level;
-    std::ostream* stream = nullptr;
+    std::ostream& stream;
     const std::string log_string;
 };
-
-inline Logger log_(const char* file, const char* fnc) {
-    std::ostringstream ss;
-    ss << "[" << file << ":" << fnc << "] ";
-    return {ss.str(), &std::cout};
-}
 
 #endif  // !LOGGING_H_

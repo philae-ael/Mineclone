@@ -1,8 +1,8 @@
 { pkgs ? import <nixpkgs> { } }:
 pkgs.mkShell.override
 {
-  stdenv = pkgs.llvmPackages_latest.stdenv;
-  # stdenv = pkgs.gcc11Stdenv;
+  # stdenv = pkgs.llvmPackages_latest.stdenv;
+  stdenv = pkgs.gcc11Stdenv;
 }
 {
   buildInputs = with pkgs; [
