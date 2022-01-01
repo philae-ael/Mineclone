@@ -3,9 +3,18 @@
 
 #include <compare>
 #include <iostream>
-#include <source_location>
 #include <sstream>
 #include <string>
+
+#if __cpp_lib_source_location >= 201907L
+#include <source_location>
+#elif __has_include(<experimental/source_location>)
+#include <experimental/source_location>
+namespace std {using experimental::source_location;};
+#else
+#error "can't find source_location header!"
+#endif
+
 
 enum class LogLevel { Trace, Info, Warning, Error };
 

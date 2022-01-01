@@ -7,9 +7,9 @@
 #include <ios>
 #include <new>
 #include <ostream>
-#include <source_location>
 #include <string>
 
+// source_location is assured to be included there
 #include "logging.h"
 
 #define CAT2(a, b) a##b

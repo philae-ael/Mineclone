@@ -2,4 +2,3 @@ build/
 .cache/
 .direnv/
 Testing/
-.clangd

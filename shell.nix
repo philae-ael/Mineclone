@@ -1,10 +1,17 @@
 { pkgs ? import <nixpkgs> { } }:
-pkgs.mkShell.override
+let
+  libcxx = false; # NOTE: there isn't a source_location header in libcxx so it doesn't works...
+  gcc = false;
+
+  stdenv =
+    if libcxx then
+      pkgs.llvmPackages_latest.libcxxStdenv
+    else (if gcc then pkgs.gcc11Stdenv else pkgs.llvmPackages_latest.stdenv);
+  shellHook = if !gcc && libcxx then ''export NIX_CFLAGS_COMPILE="-nostdlibinc $NIX_CFLAGS_COMPILE"'' else "";
+in
+stdenv.mkDerivation
 {
-  # stdenv = pkgs.llvmPackages_latest.stdenv;
-  stdenv = pkgs.gcc11Stdenv;
-}
-{
+  name = "cpp-shell-mineclone";
   buildInputs = with pkgs; [
     # system libs
     # I dont use all that lol, but conan want all of them
@@ -71,4 +78,6 @@ pkgs.mkShell.override
     curl
 
   ];
+
+  shellHook = shellHook;
 }
