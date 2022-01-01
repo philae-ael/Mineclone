@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> { } }:
 let
   libcxx = false; # NOTE: there isn't a source_location header in libcxx so it doesn't works...
-  gcc = false;
+  gcc = true;
 
   stdenv =
     if libcxx then

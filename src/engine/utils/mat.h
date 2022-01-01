@@ -12,14 +12,16 @@
 #include "constexpr_functions.h"
 namespace math {
 
-template <typename T, int N, int M, typename=typename std::enable_if_t<std::is_arithmetic_v<T>>>
+template <typename T, int N, int M,
+          typename = typename std::enable_if_t<std::is_arithmetic_v<T>>>
 struct mat {
    public:
    private:
-    // This structs allow to make vec and mat only one class while having
+    // This structs allows to make vec and mat only one class while having
     // different kinds of accessors
-    template <int M_, int dummy>
-    struct details {
+    template <int M_, class dummy = int>  // the dummy is needed because gcc
+                                          // does not implement CWG 727
+                                          struct details_ {
         using value_type = mat<T, M_, 1>;
         using reference = value_type &;
         using const_reference = const value_type &;
@@ -38,8 +40,8 @@ struct mat {
         }
     };
 
-    template <int dummy>
-    struct details<1, dummy> {
+    template <class dummy>
+    struct details_<1, dummy> {
         using value_type = T;
         using reference = value_type &;
         using const_reference = const value_type &;
@@ -57,23 +59,23 @@ struct mat {
         }
     };
 
+    using details = details_<M>;
+
    public:
     using value_type = T;
     using reference = value_type &;
     using const_reference = const value_type &;
     using pointer = value_type *;
 
-    using value_stored = typename details<M, 0>::value_type;
-    using reference_stored = typename details<M, 0>::reference;
-    using const_reference_stored = typename details<M, 0>::const_reference;
-    using pointer_stored = typename details<M, 0>::pointer;
+    using value_stored = typename details::value_type;
+    using reference_stored = typename details::reference;
+    using const_reference_stored = typename details::const_reference;
+    using pointer_stored = typename details::pointer;
 
-    using iterator = typename details<M, 0>::iterator;
-    using const_iterator = typename details<M, 0>::const_iterator;
+    using iterator = typename details::iterator;
+    using const_iterator = typename details::const_iterator;
 
-    typename details<M, 0>::storage_kind
-        data;  // NOLINT: this is intended to be public: this struct meant to be
-               // a POD
+    typename details::storage_kind data;
 
     constexpr reference_stored operator[](int i) { return at(i); }
     constexpr const_reference_stored operator[](int i) const { return at(i); }
@@ -81,9 +83,9 @@ struct mat {
     constexpr reference_stored at(int i) { return data[i]; }
     constexpr const_reference_stored at(int i) const { return data[i]; }
 
-    constexpr reference at(int i, int j) { return details<M, 0>::get(data, i, j); }
+    constexpr reference at(int i, int j) { return details::get(data, i, j); }
     constexpr const_reference at(int i, int j) const {
-        return details<M, 0>::get(data, i, j);
+        return details::get(data, i, j);
     }
     // NOLINT
     constexpr iterator begin() { return iterator(data); }
@@ -93,7 +95,7 @@ struct mat {
     constexpr const_iterator cbegin() const { return const_iterator(data); }
     constexpr const_iterator cend() const { return const_iterator(data + N); }
 
-    pointer ptr() { return &details<M, 0>::get(data, 0, 0); }
+    pointer ptr() { return &details::get(data, 0, 0); }
 };
 
 template <typename T, int N, int M>
