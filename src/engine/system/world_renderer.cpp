@@ -78,6 +78,7 @@ std::array vertices{
 WorldRenderer::WorldRenderer(CameraController* camera_controller)
     : camera_controller(camera_controller) {
     camera_controller->getCamera().position = {4, 5, 4};
+    camera_controller->lookAt({0, 0, 0});
 
     std::string vertex_source = get_asset(AssetKind::Shader, "base.vert");
     std::string fragment_source = get_asset(AssetKind::Shader, "base.frag");
@@ -166,7 +167,6 @@ void renderOneBlock(const CameraController* camera_controller,
 }
 
 void WorldRenderer::render() {
-    camera_controller->lookAt({0, 0, 0});
 
     for (auto&& chunk : world.data) {
         // TODO write an iterator for chunk

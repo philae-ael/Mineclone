@@ -75,6 +75,15 @@ void convertDispatchEvent(GLFWwindow* mWindow) {
     if (glfwGetKey(mWindow, GLFW_KEY_S) == GLFW_PRESS)
         ev.translationAxis[2] += 1;
 
+    if (glfwGetKey(mWindow, GLFW_KEY_UP) == GLFW_PRESS)
+        ev.rotationAxis[0] += 1;
+    if (glfwGetKey(mWindow, GLFW_KEY_DOWN) == GLFW_PRESS)
+        ev.rotationAxis[0] -= 1;
+    if (glfwGetKey(mWindow, GLFW_KEY_LEFT) == GLFW_PRESS)
+        ev.rotationAxis[1] += 1;
+    if (glfwGetKey(mWindow, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        ev.rotationAxis[1] -= 1;
+
     EventManager::dispatch(ev);
 }
 

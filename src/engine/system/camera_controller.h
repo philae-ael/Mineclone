@@ -22,6 +22,7 @@ class CameraController {
         Logger::get() << "In onCameraMoveEvent";
 
         translation_movement_axis = math::normalize(event.translationAxis);
+        rotation_movement_axis = math::normalize(event.rotationAxis);
     }
 
     void update(float dt) {
@@ -36,6 +37,22 @@ class CameraController {
             (translation_movement_axis[0] * direction_x +
              translation_movement_axis[1] * direction_y +
              translation_movement_axis[2] * direction_z);
+
+        const math::vec3f direction_rot_y{0, 1, 0};
+        const math::vec3f direction_rot_x =
+            math::normalize(math::wedge(direction_rot_y, direction_z));
+        const math::vec3f direction_rot_z =
+            math::normalize(math::wedge(direction_rot_x, direction_rot_y));
+
+        const math::vec3f direction_rot =
+            (rotation_movement_axis[0] * direction_rot_x +
+             rotation_movement_axis[1] * direction_rot_y +
+             rotation_movement_axis[2] * direction_rot_z);
+
+        if (math::norm2(direction_rot) > 0.9)  // NOLINT
+            camera.rotation =
+                camera.rotation *
+                math::rotate<float, 4>(dt * rot_speed, direction_rot);
 
         camera.position += dt * speed * direction;
 
@@ -104,7 +121,9 @@ class CameraController {
     const float far = 40.;
 
     const float speed = 5;
+    const float rot_speed = M_PI;
     math::vec3f translation_movement_axis{};
+    math::vec3f rotation_movement_axis{};
 };
 
 #endif  // !CAMERA_CONTROLLER_H_
