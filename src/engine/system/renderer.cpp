@@ -2,13 +2,17 @@
 
 #include <glad/glad.h>
 
-#include "world_renderer.h"
 #include "../utils/mat_opengl.h"
+#include "world_renderer.h"
 
-Renderer::Renderer() : world_renderer{&camera} {}
+Renderer::Renderer() : world_renderer{&camera_controller} {}
 
-void Renderer::setWindowSize(int width, int height){
-    camera.persp = math::projection<float>((float)width/(float)height, M_PI/2, 1, 40);
+void Renderer::setWindowSize(int width, int height) {
+    camera_controller.updateCamera(width, height);
+}
+
+void Renderer::update(float dt){
+    camera_controller.update(dt);
 }
 
 void Renderer::render() {

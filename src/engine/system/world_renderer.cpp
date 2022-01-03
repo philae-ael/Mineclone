@@ -11,7 +11,6 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../../stb_image.h"
-
 #include "../asset.h"
 #include "../component/shader.h"
 #include "../utils/logging.h"
@@ -76,7 +75,10 @@ std::array vertices{
     Vertex{{1, -1, -1}, {0, 1}, FaceKind::Bottom},
 };
 
-WorldRenderer::WorldRenderer(Camera* camera) : camera(camera) {
+WorldRenderer::WorldRenderer(CameraController* camera_controller)
+    : camera_controller(camera_controller) {
+    camera_controller->getCamera().position = {4, 5, 4};
+
     std::string vertex_source = get_asset(AssetKind::Shader, "base.vert");
     std::string fragment_source = get_asset(AssetKind::Shader, "base.frag");
 
@@ -115,15 +117,17 @@ WorldRenderer::WorldRenderer(Camera* camera) : camera(camera) {
     int subWidth = x / tiles;
     int subHeight = y / tiles;
 
-
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_SRGB8_ALPHA8, subWidth, subHeight, tiles*tiles, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_SRGB8_ALPHA8, subWidth, subHeight,
+                 tiles * tiles, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
     glPixelStorei(GL_UNPACK_ROW_LENGTH, x);
-    for(int i = 0; i< tiles ;i++)
-        for(int j = 0; j< tiles ;j++)
-            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, tiles*j + i, subWidth, subHeight, 1, GL_RGBA, GL_UNSIGNED_BYTE, data + j*x*n + i*subWidth*n);
+    for (int i = 0; i < tiles; i++)
+        for (int j = 0; j < tiles; j++)
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, tiles * j + i,
+                            subWidth, subHeight, 1, GL_RGBA, GL_UNSIGNED_BYTE,
+                            data + j * x * n + i * subWidth * n);
 
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -138,8 +142,8 @@ WorldRenderer::WorldRenderer(Camera* camera) : camera(camera) {
     glEnable(GL_DEPTH_TEST);
 }
 
-void renderOneBlock(const Camera& camera, const Shader& shader, int x, int y,
-                    int z, GLuint VAO) {
+void renderOneBlock(const CameraController* camera_controller,
+                    const Shader& shader, int x, int y, int z, GLuint VAO) {
     glEnableVertexAttribArray(0);
     glBindVertexArray(VAO);
     auto with_shader = shader.use();
@@ -148,7 +152,7 @@ void renderOneBlock(const Camera& camera, const Shader& shader, int x, int y,
     const auto transl = math::translation<float>(x, y, z);  // NOLINT
     auto model_trans = transl * scale;
     auto world_trans = math::translation<float>(0, 0, 0);
-    auto proj = camera.getCameraMatrix();
+    auto proj = camera_controller->getCameraMatrix();
 
     GLint modelUnif = shader.getUniformLocation("model");
     GLint worldUnif = shader.getUniformLocation("world");
@@ -162,8 +166,7 @@ void renderOneBlock(const Camera& camera, const Shader& shader, int x, int y,
 }
 
 void WorldRenderer::render() {
-    camera->position = {4, 5, 4};
-    camera->lookAt({0, 0, 0});
+    camera_controller->lookAt({0, 0, 0});
 
     for (auto&& chunk : world.data) {
         // TODO write an iterator for chunk
@@ -174,7 +177,7 @@ void WorldRenderer::render() {
 
                     if (block.type == BlockType::Empty) continue;
 
-                    renderOneBlock(*camera, *shader,
+                    renderOneBlock(camera_controller, *shader,
                                    chunkWidth * chunk.getId().x + x, y,
                                    chunkWidth * chunk.getId().z + z, VAO);
                 }

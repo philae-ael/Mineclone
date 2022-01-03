@@ -1,8 +1,8 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include "camera_controller.h"
 #include "world_renderer.h"
-#include "../component/camera.h"
 
 class Renderer {
    public:
@@ -13,13 +13,15 @@ class Renderer {
     Renderer &operator=(const Renderer &) = delete;
     ~Renderer() = default;
 
-
     void render();
+    void update(float dt);
     void setWindowSize(int width, int height);
 
    private:
+    // Relative position is important! camera_controller
+    // will be created before world_renderer
+    CameraController camera_controller;
     WorldRenderer world_renderer;
-    Camera camera;
 };
 
 #endif  // !RENDERER_H

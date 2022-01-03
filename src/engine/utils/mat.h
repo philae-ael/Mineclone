@@ -21,7 +21,7 @@ struct mat {
     // different kinds of accessors
     template <int M_, class dummy = int>  // the dummy is needed because gcc
                                           // does not implement CWG 727
-                                          struct details_ {
+    struct details_ {
         using value_type = mat<T, M_, 1>;
         using reference = value_type &;
         using const_reference = const value_type &;
@@ -330,6 +330,16 @@ constexpr vec<T, 3> wedge(const vec<T, 3> &lhs, const vec<T, 3> &rhs) {
     return {lhs.data[1] * rhs.data[2] - lhs.data[2] * rhs.data[1],
             lhs.data[2] * rhs.data[0] - lhs.data[0] * rhs.data[2],
             lhs.data[0] * rhs.data[1] - lhs.data[1] * rhs.data[0]};
+};
+
+
+// HACKY!
+// Use the fact that vec is a POD containing only an array of size N 
+// thus we can use the storage of v as the storage of a smaller view
+template <typename T, int N, int M, typename=std::enable_if_t<(N > M)>>
+const vec<T, M>& get_view(vec<T, N> &v){
+    const vec<T, M>& p = *((vec<T, M>*) &v); 
+    return p;
 };
 
 using vec2f = vec<float, 2>;

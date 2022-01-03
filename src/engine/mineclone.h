@@ -7,6 +7,7 @@
 #include <optional>
 
 #include "system/renderer.h"
+#include "system/event_manager.h"
 
 class Mineclone {
    public:

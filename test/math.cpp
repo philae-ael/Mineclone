@@ -1,7 +1,7 @@
-#include "engine/utils/mat.h"
-#include "engine/utils/constexpr_functions.h"
-
 #include <catch2/catch.hpp>
+
+#include "engine/utils/constexpr_functions.h"
+#include "engine/utils/mat.h"
 
 using math::mat2i;
 using math::vec3i;
@@ -153,3 +153,30 @@ TEST_CASE("math::mat diag") {
     STATIC_REQUIRE(d == math::mat2f{{{1, 0}, {0, -1}}});
 }
 
+TEST_CASE("math::mat subscrition") {
+    math::vec2i v{1, 2};
+    int& a = v[0];
+    a += 1;
+    v[1] += 1;
+    REQUIRE(v == math::vec2i{2, 3});
+}
+
+TEST_CASE("math::mat equal") {
+    math::vec2i v1{1, 2};
+    math::vec2i v2{0, 0};
+
+    v2 = v1;
+    REQUIRE(v1 == v2);
+
+    math::mat2i m1{{{1, 2}, {2, 1}}};
+    math::mat2i m2{{{0, 0}, {0, 0}}};
+
+    m2 = m1;
+    REQUIRE(m1 == m2);
+}
+
+TEST_CASE("math::vec view") {
+    math::vec4i v1{1, 2, 3, 4};
+    auto view = math::get_view<int, 4, 3>(v1);
+    REQUIRE(view == math::vec3i{1, 2, 3});
+}
