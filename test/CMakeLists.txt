@@ -10,7 +10,6 @@ add_executable(mineclone_tests
   main.cpp
   math.cpp
   math_opengl.cpp
-  bind_this.cpp
   )
 
 target_compile_options(mineclone_tests PRIVATE -Og)
