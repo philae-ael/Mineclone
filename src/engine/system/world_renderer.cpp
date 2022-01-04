@@ -13,6 +13,7 @@
 #include "../../stb_image.h"
 #include "../asset.h"
 #include "../component/shader.h"
+#include "../component/shader_layout.h"
 #include "../utils/logging.h"
 #include "../utils/mat.h"
 #include "../utils/mat_opengl.h"
@@ -94,21 +95,13 @@ WorldRenderer::WorldRenderer(CameraController* camera_controller)
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(),
                  GL_STATIC_DRAW);
 
-    GLint posAttrib = shader->getAttribLocation("in_position");
-    GLint texAttrib = shader->getAttribLocation("in_texposition");
-    GLint faceAttrib = shader->getAttribLocation("in_facekind");
+    Layout layout{{
+        {"in_position", LayoutType::Float, 3},
+        {"in_texposition", LayoutType::Float, 2},
+        {"in_facekind", LayoutType::Float, 1},
+    }};
 
-    glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          (void*)offsetof(Vertex, position));  // NOLINT
-
-    glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          (void*)offsetof(Vertex, textpos));  // NOLINT
-    glVertexAttribPointer(faceAttrib, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          (void*)offsetof(Vertex, face));  // NOLINT
-
-    glEnableVertexAttribArray(posAttrib);
-    glEnableVertexAttribArray(texAttrib);
-    glEnableVertexAttribArray(faceAttrib);
+    shader->useLayout(layout);
 
     std::string path = get_asset_path(AssetKind::Texture, "minecraft.png");
     int x, y, n;

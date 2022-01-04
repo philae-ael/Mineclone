@@ -4,6 +4,8 @@
 
 #include <stdexcept>
 
+#include "shader_layout.h"
+
 #ifdef DEBUG
 GLuint Shader::UseShaderWithRAII::in_use_shader_program = 0;
 #endif
@@ -100,4 +102,20 @@ Shader::~Shader() {
     glDeleteProgram(shader_program);
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
+}
+
+void Shader::useLayout(const Layout& layout) {
+    auto self = use();
+
+    for (const auto& item : layout.items) {
+        GLint attrib = getAttribLocation(item.attibute_name);
+
+        glVertexAttribPointer(attrib, static_cast<GLint>(item.length),
+                              layoutTypeGL(item.type), GL_FALSE, 
+                              static_cast<GLsizei>(layout.size),
+                              (void*)item.offset);  // NOLINT
+        glEnableVertexAttribArray(attrib);
+    }
+
+    current_layout = &layout;
 }
