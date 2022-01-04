@@ -15,7 +15,7 @@ using CameraMoveEvent = Event<struct CameraMoveEvent_>;
 
 template <>
 inline void trace_event(const CameraMoveEvent & event){
-    auto logger = Logger::get(LogLevel::Trace, "CameraMoveEvent");
+    auto logger = Logger::get("CameraMoveEvent");
     logger << "Translation Axis :"<< event.translationAxis << "rotationAxis :" << event.rotationAxis;
 }
 

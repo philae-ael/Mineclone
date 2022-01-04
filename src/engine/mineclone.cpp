@@ -30,7 +30,7 @@ Mineclone::Mineclone() {
 
         glfwMakeContextCurrent(mWindow);
         gladLoadGL();
-        Logger::get() << LogLevel::Info
+        log << LogLevel::Info
                       << "Opengl version: " << glGetString(GL_VERSION) << "\n";
         return WinInitError::WE_SUCCESS;
     };
@@ -38,7 +38,7 @@ Mineclone::Mineclone() {
     WinInitError error = createWindow();
     switch (error) {
         case WinInitError::WE_CREATION:
-            Logger::get() << LogLevel::Error
+            log << LogLevel::Error
                           << "Error while creating window, Bye!\n";
             throw std::runtime_error("Error while creating window");
             break;

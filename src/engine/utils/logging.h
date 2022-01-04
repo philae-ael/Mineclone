@@ -1,15 +1,18 @@
 #ifndef LOGGING_H_
 #define LOGGING_H_
 
+#include <algorithm>
 #include <compare>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 
 #if __cpp_lib_source_location >= 201907L
 #include <source_location>
 #elif __has_include(<experimental/source_location>)
 #include <experimental/source_location>
+#include <utility>
 namespace std {
 using experimental::source_location;
 };
@@ -56,17 +59,6 @@ inline const char* logResetColor() {
 }
 
 class Logger {
-   public:
-    Logger(std::string log_string, LogLevel log_level = LogLevel::Trace,
-           std::ostream& stream = std::cout)
-        : minimum_log_level(log_level),
-          stream(stream),
-          log_string(std::move(log_string)) {}
-    Logger(Logger&& l) noexcept
-        : minimum_log_level(l.minimum_log_level),
-          stream(l.stream),
-          log_string(l.log_string) {}
-
     // There should only be one instance used at anytime
     class LoggerStream {
        public:
@@ -76,12 +68,23 @@ class Logger {
         }
 
         LoggerStream& operator<<(auto rhs) {
-            if (log_level >= minimum_log_level)
-                stream << logColor(log_level) << rhs << logResetColor();
+            // if it's an error, we want to be warned.
+            // otherwise, we respect the category whitelist and the current
+            // log_level
+            if (log_level == LogLevel::Error ||
+                (Logger::category_whitelist.contains(category) &&
+                 log_level >= minimum_log_level)) {
+                buf << logColor(log_level) << rhs << logResetColor();
+            }
             return *this;
         }
+
         ~LoggerStream() {
-            stream << "\n";
+            const std::string out = buf.str();
+            if (out.empty()) return;
+
+            const std::ios::fmtflags stream_flags{stream.flags()};
+            stream << buf.str() << "\n";
             stream.flags(stream_flags);
         }
 
@@ -90,28 +93,51 @@ class Logger {
         LoggerStream& operator=(LoggerStream& l) = delete;
 
        private:
-        LoggerStream(std::ostream& stream, LogLevel minimum_log_level)
+        LoggerStream(std::ostream& stream, LogLevel minimum_log_level,
+                     const std::string& category)
             : log_level(minimum_log_level),
               minimum_log_level(minimum_log_level),
-              stream(stream) {
-            stream_flags = stream.flags();
-        }
-        LoggerStream(LoggerStream&& l) noexcept : stream(l.stream) {}
+              stream(stream),
+              category(category) {}
+        LoggerStream(LoggerStream&& l) noexcept
+            : log_level(l.log_level),
+              minimum_log_level(l.minimum_log_level),
+              stream(l.stream),
+              category(l.category) {}
+
         LogLevel log_level;
-        LogLevel minimum_log_level;
+        const LogLevel minimum_log_level;
+        std::ostringstream buf;
         std::ostream& stream;
-        std::ios::fmtflags stream_flags;
+        const std::string& category;  // Can be a const ref, bc his father,
+                                      // logger has to outlive LoggerStream
 
         friend Logger;
     };
 
+   public:
+    Logger(std::string log_string, LogLevel log_level = LogLevel::Trace,
+           std::string category = "", std::ostream& stream = std::cout)
+        : minimum_log_level(log_level),
+          stream(stream),
+          log_string(std::move(log_string)),
+          category(std::move(category)) {}
+    Logger(Logger&& l) noexcept
+        : minimum_log_level(l.minimum_log_level),
+          stream(l.stream),
+          log_string(l.log_string),
+          category(l.category) {}
+
     LoggerStream operator<<(LogLevel lvl) {
-        LoggerStream s{stream, std::max(global_log_level, minimum_log_level)};
+        LoggerStream s{stream, std::max(global_log_level, minimum_log_level),
+                       category};
         s << lvl << log_string;
         return s;
     };
+
     LoggerStream operator<<(auto rhs) {
-        LoggerStream s{stream, std::max(global_log_level, minimum_log_level)};
+        LoggerStream s{stream, std::max(global_log_level, minimum_log_level),
+                       category};
         s << log_string << rhs;
         return s;
     };
@@ -119,19 +145,36 @@ class Logger {
     static void set_global_log_level(LogLevel lvl) { global_log_level = lvl; }
 
     static Logger get(
-        LogLevel lvl = LogLevel::Trace, const std::string& category = "",
+        const std::string& category = "", LogLevel lvl = LogLevel::Trace,
         const std::source_location location = std::source_location::current()) {
         std::ostringstream ss;
         ss << "[" << category << (category.empty() ? "" : ": ")
            << location.function_name() << ":" << location.line() << "] ";
-        return {ss.str(), lvl};
+        return {ss.str(), lvl, category};
+    }
+
+    static void whitelist(std::unordered_set<std::string>& s) {
+        category_whitelist.merge(s);
+    }
+
+    static void blacklist(const std::unordered_set<std::string>& s) {
+        std::unordered_set<std::string> res;
+        std::set_difference(category_whitelist.cbegin(),
+                            category_whitelist.cend(), s.cbegin(), s.cend(),
+                            std::inserter(res, res.end()));
+        category_whitelist = res;
     }
 
    private:
     LogLevel minimum_log_level;
-    static LogLevel global_log_level;
     std::ostream& stream;
     const std::string log_string;
+    const std::string category;
+
+    static LogLevel global_log_level;
+    static std::unordered_set<std::string> category_whitelist;
+
+    friend LoggerStream;
 };
 
 #endif  // !LOGGING_H_

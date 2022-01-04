@@ -5,8 +5,19 @@
 #include "engine/utils/logging.h"
 #include "engine/utils/profiler.h"
 
-int main(int /*unused*/, char** /*unused*/) {
+int main(int argc, char** argv) {
     Logger::set_global_log_level(LogLevel::Trace);
+
+    std::unordered_set<std::string> whitelist;
+    if (argc > 1) {
+        for (int i = 1; i < argc; i++) {
+            whitelist.emplace(argv[i]);
+        }
+    } else
+        whitelist = {"Mineclone"};
+    Logger::whitelist(whitelist);
+
+    Logger::get("err", LogLevel::Error) << "AN ERRRO";
 
     PROFILE_SCOPED();
     Mineclone game;

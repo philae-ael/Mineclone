@@ -41,7 +41,7 @@ class ProfileFunction {
 
     static ProfileFunction make_profiler_scope(
         const std::source_location location = std::source_location::current()) {
-        return {Logger::get(LogLevel::Trace, "Profiler", location)};
+        return {Logger::get("Profiler", LogLevel::Trace, location)};
     }
 
    private:

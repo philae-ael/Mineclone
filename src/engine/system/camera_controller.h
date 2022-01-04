@@ -11,7 +11,7 @@
 
 class CameraController {
    public:
-    CameraController() {
+    CameraController(){
         EventManager::subscribe(
             std::function{[&](const CameraMoveEvent& event) {
                 this->onCameraMoveEvent(event);
@@ -19,7 +19,7 @@ class CameraController {
     };
 
     void onCameraMoveEvent(const CameraMoveEvent& event) {
-        Logger::get() << "In onCameraMoveEvent";
+        log << "In onCameraMoveEvent";
 
         translation_movement_axis = math::normalize(event.translationAxis);
         rotation_movement_axis = math::normalize(event.rotationAxis);
@@ -56,7 +56,7 @@ class CameraController {
 
         camera.position += dt * speed * direction;
 
-        Logger::get() << direction;
+        log << direction;
     }
 
     void updateCamera(int width, int height) {
@@ -124,6 +124,8 @@ class CameraController {
     const float rot_speed = M_PI;
     math::vec3f translation_movement_axis{};
     math::vec3f rotation_movement_axis{};
+
+    Logger log{Logger::get("CameraController")};
 };
 
 #endif  // !CAMERA_CONTROLLER_H_

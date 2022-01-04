@@ -15,25 +15,26 @@ class Shader {
        public:
         UseShaderWithRAII(GLuint shader_program) {
             glGetIntegerv(GL_CURRENT_PROGRAM, &old_shader_in_use);
-            Logger::get() << "Swapping from shader " << old_shader_in_use
-                          << " to " << shader_program;
+            log << "Swapping from shader " << old_shader_in_use << " to "
+                << shader_program;
 
             glUseProgram(shader_program);
         }
 
         ~UseShaderWithRAII() {
-            Logger::get() << "Swapping back to shader " << old_shader_in_use;
+            log << "Swapping back to shader " << old_shader_in_use;
             if (old_shader_in_use) glUseProgram(old_shader_in_use);
         }
 
        private:
         GLint old_shader_in_use = 0;
+        Logger log{Logger::get("Shader")};
     };
 
    public:
     Shader(const std::string &vertex_shader_source,
            const std::string &fragment_shader_source);
-    Shader(Shader&& other) noexcept {
+    Shader(Shader &&other) noexcept {
         vertex_shader = other.vertex_shader;
         fragment_shader = other.fragment_shader;
         shader_program = other.shader_program;
@@ -41,7 +42,6 @@ class Shader {
 
         other.shader_program = other.fragment_shader = other.vertex_shader = 0;
         other.current_layout = nullptr;
-
     }
     ~Shader();
 

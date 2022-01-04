@@ -57,11 +57,5 @@ add_executable(mineclone
 target_link_libraries(mineclone PRIVATE glfw::glfw)
 target_link_libraries(mineclone PRIVATE glad::glad)
 
-add_custom_target(run
-    COMMAND mineclone
-    DEPENDS mineclone
-    WORKING_DIRECTORY ../${CMAKE_PROJECT_DIR}
-)
-
 enable_testing()
 add_subdirectory(test)

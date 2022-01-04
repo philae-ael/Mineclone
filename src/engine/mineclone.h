@@ -4,10 +4,12 @@
 #include <glad/glad.h>
 // must be after glad
 #include <GLFW/glfw3.h>
+
 #include <optional>
 
-#include "system/renderer.h"
 #include "system/event_manager.h"
+#include "system/renderer.h"
+#include "utils/logging.h"
 
 class Mineclone {
    public:
@@ -19,6 +21,7 @@ class Mineclone {
     // Allow to delay initialisation
     std::optional<Renderer> renderer;
     GLFWwindow *mWindow = nullptr;
+    Logger log{Logger::get("Mineclone")};
 };
 
 #endif  // !MINECLONE_H_

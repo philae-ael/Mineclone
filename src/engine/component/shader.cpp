@@ -97,11 +97,14 @@ Shader::Shader(const std::string& vertex_shader_source,
 }
 
 Shader::~Shader() {
-    glDetachShader(shader_program, vertex_shader);
-    glDetachShader(shader_program, fragment_shader);
-    glDeleteProgram(shader_program);
-    glDeleteShader(vertex_shader);
-    glDeleteShader(fragment_shader);
+    if (shader_program) {
+        if (vertex_shader) glDetachShader(shader_program, vertex_shader);
+        if (fragment_shader) glDetachShader(shader_program, fragment_shader);
+
+        glDeleteProgram(shader_program);
+    }
+    if (vertex_shader) glDeleteShader(vertex_shader);
+    if (fragment_shader) glDeleteShader(fragment_shader);
 }
 
 void Shader::useLayout(const Layout& layout) {
@@ -111,7 +114,7 @@ void Shader::useLayout(const Layout& layout) {
         GLint attrib = getAttribLocation(item.attibute_name);
 
         glVertexAttribPointer(attrib, static_cast<GLint>(item.length),
-                              layoutTypeGL(item.type), GL_FALSE, 
+                              layoutTypeGL(item.type), GL_FALSE,
                               static_cast<GLsizei>(layout.size),
                               (void*)item.offset);  // NOLINT
         glEnableVertexAttribArray(attrib);
