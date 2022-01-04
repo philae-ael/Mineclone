@@ -10,11 +10,19 @@
 #include <source_location>
 #elif __has_include(<experimental/source_location>)
 #include <experimental/source_location>
-namespace std {using experimental::source_location;};
+namespace std {
+using experimental::source_location;
+};
 #else
 #error "can't find source_location header!"
 #endif
 
+#ifdef __unix__
+#include <unistd.h>
+inline bool inTerminalOut() { return isatty(fileno(stdout)); }
+#else
+inline bool inTerminalOut() { return false; }
+#endif
 
 enum class LogLevel { Trace, Info, Warning, Error };
 
@@ -24,6 +32,7 @@ inline std::strong_ordering operator<=>(LogLevel l1, LogLevel l2) {
 
 // Can I return that ? I hope strings are placed in .data
 inline const char* logColor(LogLevel lvl) {
+    if (!inTerminalOut()) return "";
     switch (lvl) {
         case LogLevel::Trace:
             return "";
@@ -41,7 +50,10 @@ inline const char* logColor(LogLevel lvl) {
     return "";
 }
 
-inline const char* logResetColor() { return "\033[0m"; }
+inline const char* logResetColor() {
+    if (!inTerminalOut()) return "";
+    return "\033[0m";
+}
 
 class Logger {
    public:
@@ -110,8 +122,8 @@ class Logger {
         LogLevel lvl = LogLevel::Trace, const std::string& category = "",
         const std::source_location location = std::source_location::current()) {
         std::ostringstream ss;
-        ss << "[" << category << (category.empty () ? "" : ": ") << location.function_name() << ":"
-           << location.line() << "] ";
+        ss << "[" << category << (category.empty() ? "" : ": ")
+           << location.function_name() << ":" << location.line() << "] ";
         return {ss.str(), lvl};
     }
 
