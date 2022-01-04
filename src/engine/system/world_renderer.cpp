@@ -81,10 +81,7 @@ WorldRenderer::WorldRenderer(CameraController* camera_controller)
     camera_controller->getCamera().position = {4, 5, 4};
     camera_controller->lookAt({0, 0, 0});
 
-    std::string vertex_source = get_asset(AssetKind::Shader, "base.vert");
-    std::string fragment_source = get_asset(AssetKind::Shader, "base.frag");
-
-    shader.emplace(vertex_source, fragment_source);
+    shader.emplace(get_asset<AssetKind::Shader>("base"));
     auto with_shader = shader->use();
 
     glGenVertexArrays(1, &VAO);
