@@ -75,8 +75,8 @@ class range_it {
     bool operator!=(const range_it& other) const { return !(*this == other); }
 
    private:
-    Logger log {Logger::get("Range")};
     seq_container current_seq{0};
+    Logger log {Logger::get("Range")};
 };
 
 #endif  // !RANGE_ITERATOR_H_

@@ -14,7 +14,7 @@ void main()
         if(out_facekind == 1){ // top 
             id = 0;
         }
-        if(out_facekind == -1){ // bottom
+        if(out_facekind == 2){ // bottom
             id = 2; 
         }
 

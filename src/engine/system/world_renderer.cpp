@@ -12,6 +12,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "../../stb_image.h"
 #include "../asset.h"
+#include "../component/world.h"
 #include "../component/shader.h"
 #include "../component/shader_layout.h"
 #include "../utils/logging.h"
@@ -157,21 +158,16 @@ void renderOneBlock(const CameraController* camera_controller,
 }
 
 void WorldRenderer::render() {
-
     for (auto&& chunk : world.data) {
         // TODO write an iterator for chunk
-        for (int x = 0; x < chunkWidth; x++) {
-            for (int z = 0; z < chunkWidth; z++) {
-                for (int y = 0; y < chunkHeight; y++) {
-                    auto block = chunk.getBlock(x, y, z);
+        for (auto [x, y, z] : chunk_range_it{}) {
+            auto block = chunk.getBlock({x, y, z});
 
-                    if (block.type == BlockType::Empty) continue;
+            if (block.type == BlockType::Empty) continue;
 
-                    renderOneBlock(camera_controller, *shader,
-                                   chunkWidth * chunk.getId().x + x, y,
-                                   chunkWidth * chunk.getId().z + z, VAO);
-                }
-            }
+            renderOneBlock(camera_controller, *shader,
+                           chunkWidth * chunk.getId().x + x, y,
+                           chunkWidth * chunk.getId().z + z, VAO);
         }
     }
 }

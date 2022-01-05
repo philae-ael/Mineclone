@@ -2,7 +2,9 @@
 #define LOGGING_H_
 
 #include <algorithm>
+#include <chrono>
 #include <compare>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -84,7 +86,11 @@ class Logger {
             if (out.empty()) return;
 
             const std::ios::fmtflags stream_flags{stream.flags()};
-            stream << buf.str() << "\n";
+
+            auto time_end = std::chrono::system_clock::now();
+            std::chrono::duration<float> duration = time_end - Logger::time_begin;
+
+            stream << std::fixed <<std::setw(6) << duration.count() << "ms " << buf.str() << std::endl;
             stream.flags(stream_flags);
         }
 
@@ -92,7 +98,6 @@ class Logger {
             delete;  // This class should ONLY be lvalue
         LoggerStream& operator=(LoggerStream& l) = delete;
 
-       private:
         LoggerStream(std::ostream& stream, LogLevel minimum_log_level,
                      const std::string& category)
             : log_level(minimum_log_level),
@@ -105,23 +110,34 @@ class Logger {
               stream(l.stream),
               category(l.category) {}
 
+       private:
         LogLevel log_level;
         const LogLevel minimum_log_level;
         std::ostringstream buf;
         std::ostream& stream;
         const std::string& category;  // Can be a const ref, bc his father,
                                       // logger has to outlive LoggerStream
-
-        friend Logger;
     };
 
    public:
-    Logger(std::string log_string, LogLevel log_level = LogLevel::Trace,
-           std::string category = "", std::ostream& stream = std::cout)
+    Logger(const std::string& log_string, LogLevel log_level = LogLevel::Trace,
+           const std::string& category = "", std::ostream& stream = std::cout)
         : minimum_log_level(log_level),
           stream(stream),
-          log_string(std::move(log_string)),
-          category(std::move(category)) {}
+          log_string(log_string),
+          category(category) {}
+
+    Logger(Logger& l)
+        : minimum_log_level(l.minimum_log_level),
+          stream(l.stream),
+          log_string(l.log_string),
+          category(l.category) {}
+
+    Logger(Logger&& l)
+        : minimum_log_level(l.minimum_log_level),
+          stream(l.stream),
+          log_string(l.log_string),
+          category(l.category) {}
 
     LoggerStream operator<<(LogLevel lvl) {
         LoggerStream s{stream, std::max(global_log_level, minimum_log_level),
@@ -168,6 +184,7 @@ class Logger {
 
     static LogLevel global_log_level;
     static std::unordered_set<std::string> category_whitelist;
+    static std::chrono::time_point<std::chrono::system_clock> time_begin;
 
     friend LoggerStream;
 };

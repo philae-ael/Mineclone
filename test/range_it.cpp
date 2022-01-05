@@ -1,6 +1,7 @@
 #include <array>
 #include <catch2/catch.hpp>
 
+#include "engine/utils/logging.h"
 #include "engine/utils/range_iterator.h"
 
 TEST_CASE("range_it 1d") {
@@ -31,9 +32,9 @@ TEST_CASE("range_it 2d for") {
     range_it<unsigned int, 3, 2> r;
     std::array<std::array<unsigned int, 2>, 6> a{};
     for (auto [i, j] : r) {
-        a[i + j*3] = std::array<unsigned int, 2>{i, j};
+        a[i + j * 3] = std::array<unsigned int, 2>{i, j};
     }
-    REQUIRE(a == std::array<std::array<unsigned int, 2>, 6> {{
+    REQUIRE(a == std::array<std::array<unsigned int, 2>, 6>{{
                      {0, 0},
                      {1, 0},
                      {2, 0},
@@ -43,13 +44,16 @@ TEST_CASE("range_it 2d for") {
                  }});
 }
 
+std::unordered_set<std::string> Logger::category_whitelist{};
+LogLevel Logger::global_log_level = LogLevel::Trace;
+
 TEST_CASE("range_it 3d for") {
     range_it<unsigned int, 2, 2, 2> r;
     std::array<std::array<unsigned int, 3>, 8> a{};
     for (auto [i, j, k] : r) {
-        a[i + j*2 + k*4] = std::array<unsigned int, 3>{i, j, k};
+        a[i + j * 2 + k * 4] = std::array<unsigned int, 3>{i, j, k};
     }
-    REQUIRE(a == std::array<std::array<unsigned int, 3>, 8> {{
+    REQUIRE(a == std::array<std::array<unsigned int, 3>, 8>{{
                      {0, 0, 0},
                      {1, 0, 0},
                      {0, 1, 0},
