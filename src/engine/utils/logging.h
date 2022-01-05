@@ -145,7 +145,7 @@ class Logger {
     static void set_global_log_level(LogLevel lvl) { global_log_level = lvl; }
 
     static Logger get(
-        const std::string& category = "", LogLevel lvl = LogLevel::Trace,
+        const std::string& category = "debug", LogLevel lvl = LogLevel::Trace,
         const std::source_location location = std::source_location::current()) {
         std::ostringstream ss;
         ss << "[" << category << (category.empty() ? "" : ": ")

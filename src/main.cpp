@@ -17,8 +17,6 @@ int main(int argc, char** argv) {
         whitelist = {"Mineclone"};
     Logger::whitelist(whitelist);
 
-    Logger::get("err", LogLevel::Error) << "AN ERRRO";
-
     PROFILE_SCOPED();
     Mineclone game;
     game.run();
