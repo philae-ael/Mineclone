@@ -122,11 +122,6 @@ class Logger {
           stream(stream),
           log_string(std::move(log_string)),
           category(std::move(category)) {}
-    Logger(Logger&& l) noexcept
-        : minimum_log_level(l.minimum_log_level),
-          stream(l.stream),
-          log_string(l.log_string),
-          category(l.category) {}
 
     LoggerStream operator<<(LogLevel lvl) {
         LoggerStream s{stream, std::max(global_log_level, minimum_log_level),
