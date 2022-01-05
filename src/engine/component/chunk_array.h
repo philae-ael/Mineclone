@@ -7,7 +7,7 @@
 
 const unsigned int default_half_size = 2;
 
-template <typename T>
+template <typename T, T(factory)(int x, int y) = T::T>
 class chunk_array {
    private:
     std::vector<std::vector<T>> data;
@@ -27,7 +27,7 @@ class chunk_array {
             return chunk_array_it{outer, outer->begin(), vv};
         }
         chunk_array_it operator++(int) {  // postfix++
-            value_type ret = *this;
+            chunk_array_it ret = *this;
             ++(*this);
             return ret;
         }
@@ -65,7 +65,7 @@ class chunk_array {
         chunk_array_it(typename value_type::iterator outer,
                        typename value_type::value_type::iterator inner,
                        value_type* vv)
-            :  outer(outer), inner(inner), vv(vv) {}
+            : outer(outer), inner(inner), vv(vv) {}
     };
 
     using iterator = chunk_array_it;
@@ -116,7 +116,7 @@ class chunk_array {
                                         current_position.y - y_rel + j);
                 auto [x, y] = get_id_from_indices(i2, j2);
                 // TODO: make sure the old chunk deallocate its content
-                data[i2][j2] = T{x, y};
+                data[i2][j2] = factory(x, y);
             }
         }
     }
@@ -157,7 +157,7 @@ class chunk_array {
             data[i].reserve(size());
             for (std::size_t j = 0; j < size(); j++) {
                 auto [x, y] = get_id_from_indices(i, j);
-                data[i].emplace_back(x, y);
+                data[i].emplace_back(factory(x, y));  // Will use move ctor
             }
         }
     }
