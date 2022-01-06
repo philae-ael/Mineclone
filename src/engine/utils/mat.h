@@ -246,6 +246,8 @@ constexpr mat<T, N, N> rotate(double angle, vec<T, 3> axis) {
 
     using vec3T = vec<T, 3>;
     axis = normalize(axis);
+    if(norm2(axis) < 0.1) // axis is 0 0 0
+        return identity<T, N>();
 
     // either 1, 0, 0 or 0, 1, 0 is not parallel to p1, thus we can find a
     // perpendicular vector to axis

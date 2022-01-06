@@ -5,13 +5,13 @@
 
 #include "../component/camera.h"
 #include "../component/camera_event.h"
-#include "../utils/mat.h"
 #include "../utils/mat_opengl.h"
+#include "../utils/math.h"
 #include "event_manager.h"
 
 class CameraController {
    public:
-    CameraController(){
+    CameraController() {
         EventManager::subscribe(
             std::function{[&](const CameraMoveEvent& event) {
                 this->onCameraMoveEvent(event);
@@ -28,31 +28,39 @@ class CameraController {
     void update(float dt) {
         const math::vec3f direction_x =
             math::normalize(math::get_view<float, 4, 3>(camera.rotation[0]));
-        const math::vec3f direction_y =
-            math::normalize(math::get_view<float, 4, 3>(camera.rotation[1]));
+        const math::vec3f direction_y = {0, 1, 0};
         const math::vec3f direction_z =
             math::normalize(math::get_view<float, 4, 3>(camera.rotation[2]));
 
         const math::vec3f direction =
-            (translation_movement_axis[0] * direction_x +
+            math::normalize(translation_movement_axis[0] * direction_x +
              translation_movement_axis[1] * direction_y +
              translation_movement_axis[2] * direction_z);
 
+        const math::vec3f direction_rot_x = direction_x;
         const math::vec3f direction_rot_y{0, 1, 0};
-        const math::vec3f direction_rot_x =
-            math::normalize(math::wedge(direction_rot_y, direction_z));
-        const math::vec3f direction_rot_z =
-            math::normalize(math::wedge(direction_rot_x, direction_rot_y));
+        const math::vec3f direction_rot_z = direction_z;
 
-        const math::vec3f direction_rot =
-            (rotation_movement_axis[0] * direction_rot_x +
-             rotation_movement_axis[1] * direction_rot_y +
-             rotation_movement_axis[2] * direction_rot_z);
+        // = sin² of angle between direction_y and direction_z
+        constexpr float sin_lim = math::sin(M_PI / 10);  // =  9deg
+        const float s2 = math::norm2(math::wedge(direction_y, direction_z));
+        if (s2 < sin_lim * sin_lim) {
+            // = cos of angle between direction_y and direction_z
+            float c = math::dot(direction_y, direction_z);
 
-        if (math::norm2(direction_rot) > 0.9)  // NOLINT
-            camera.rotation =
-                camera.rotation *
-                math::rotate<float, 4>(dt * rot_speed, direction_rot);
+            // looking at sky or at ground, dont keep going
+            if (c * rotation_movement_axis[0] < 0)
+                rotation_movement_axis[0] = 0;
+        }
+
+        camera.rotation =
+            camera.rotation *
+            math::rotate<float, 4>(dt * rot_speed * rotation_movement_axis[0],
+                                   direction_rot_x) *
+            math::rotate<float, 4>(dt * rot_speed * rotation_movement_axis[1],
+                                   direction_rot_y) *
+            math::rotate<float, 4>(dt * rot_speed * rotation_movement_axis[2],
+                                   direction_rot_z);
 
         camera.position += dt * speed * direction;
 
