@@ -25,7 +25,7 @@ class Shader {
 
        private:
         GLint old_shader_in_use = 0;
-        Logger log{Logger::get("Shader")};
+        Logger log = Logger::get({"Shader"});
     };
 
    public:
@@ -61,7 +61,7 @@ class Shader {
     // We are storing the current layout only to reflect that we are changing
     // some "internal"
     const Layout *current_layout = nullptr;
-    Logger log = Logger::get("Shader");
+    Logger log = Logger::get({"Shader"});
 };
 
 #endif  // !SHADER_H_

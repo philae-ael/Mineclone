@@ -164,7 +164,7 @@ class ChunkSimplifyerProxy {
         return neighbours;
     }
 
-    Logger log{Logger::get("ChunkSimplifyer")};
+    Logger log{Logger::get({"ChunkSimplifyer"})};
 };
 
 template <typename T>

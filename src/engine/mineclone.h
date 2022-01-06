@@ -21,7 +21,7 @@ class Mineclone {
     // Allow to delay initialisation
     std::optional<Renderer> renderer;
     GLFWwindow *mWindow = nullptr;
-    Logger log{Logger::get("Mineclone")};
+    Logger log{Logger::get({"Mineclone"})};
 };
 
 #endif  // !MINECLONE_H_

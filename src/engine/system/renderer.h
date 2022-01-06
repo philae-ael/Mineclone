@@ -22,7 +22,7 @@ class Renderer {
     // will be created before world_renderer
     CameraController camera_controller;
     WorldRenderer world_renderer;
-    Logger log{Logger::get("Renderer")};
+    Logger log{Logger::get({"Renderer"})};
 };
 
 #endif  // !RENDERER_H

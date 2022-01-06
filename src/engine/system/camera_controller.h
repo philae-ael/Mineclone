@@ -133,7 +133,7 @@ class CameraController {
     math::vec3f translation_movement_axis{};
     math::vec3f rotation_movement_axis{};
 
-    Logger log{Logger::get("CameraController")};
+    Logger log{Logger::get({"CameraController"})};
 };
 
 #endif  // !CAMERA_CONTROLLER_H_

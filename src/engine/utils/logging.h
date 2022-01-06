@@ -42,6 +42,13 @@ inline const char* logResetColor() {
     return "\033[0m";
 }
 
+struct LoggerOptions {
+    const std::string category = "debug";
+    LogLevel level = LogLevel::Trace;
+    bool show_location = true;
+    std::optional<std::source_location> location{};
+};
+
 class Logger {
     // There should only be one instance used at anytime
     class LoggerStream {
@@ -139,30 +146,22 @@ class Logger {
 
     static void set_global_log_level(LogLevel lvl) { global_log_level = lvl; }
 
-    struct LoggerOptions {
-        std::string category = "debug";
-        LogLevel level = LogLevel::Trace;
-        bool show_location = true;
-        std::source_location location = std::source_location::current();
-    };
-
-    static Logger get(const auto&... opts) {
-        return get(LoggerOptions{opts...});
-    }
-
-    static Logger get(const LoggerOptions& opts) {
+    static Logger get(
+        LoggerOptions opts = LoggerOptions(),
+        std::source_location location = std::source_location::current()) {
         std::ostringstream ss;
+        if (!opts.location.has_value()) opts.location = location;
 
         if (!category_known.contains(opts.category)) {
             // Order is important to prevent infinite recursion !
             category_known.insert(opts.category);
-            get("Categories", LogLevel::Info, false)
+            get({"Categories", LogLevel::Info, false})
                 << "New category " << opts.category;
         }
         ss << "[" << opts.category;
         if (opts.show_location)
             ss << (opts.category.empty() ? "" : ": ")
-               << opts.location.function_name() << ":" << opts.location.line();
+               << opts.location->function_name() << ":" << opts.location->line();
 
         ss << "] ";
         return {ss.str(), opts.level, opts.category};

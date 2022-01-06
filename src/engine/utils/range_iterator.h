@@ -76,7 +76,7 @@ class range_it {
 
    private:
     seq_container current_seq{0};
-    Logger log {Logger::get("Range")};
+    Logger log {Logger::get({"Range"})};
 };
 
 #endif  // !RANGE_ITERATOR_H_
