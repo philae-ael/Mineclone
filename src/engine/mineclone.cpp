@@ -30,16 +30,15 @@ Mineclone::Mineclone() {
 
         glfwMakeContextCurrent(mWindow);
         gladLoadGL();
-        log << LogLevel::Info
-                      << "Opengl version: " << glGetString(GL_VERSION) << "\n";
+        log << LogLevel::Info << "Opengl version: " << glGetString(GL_VERSION)
+            << "\n";
         return WinInitError::WE_SUCCESS;
     };
 
     WinInitError error = createWindow();
     switch (error) {
         case WinInitError::WE_CREATION:
-            log << LogLevel::Error
-                          << "Error while creating window, Bye!\n";
+            log << LogLevel::Error << "Error while creating window, Bye!\n";
             throw std::runtime_error("Error while creating window");
             break;
         case WinInitError::WE_SUCCESS:
@@ -75,8 +74,7 @@ void convertDispatchEvent(GLFWwindow* mWindow) {
     if (glfwGetKey(mWindow, GLFW_KEY_S) == GLFW_PRESS)
         ev.translationAxis[2] += 1;
 
-    if (glfwGetKey(mWindow, GLFW_KEY_UP) == GLFW_PRESS)
-        ev.rotationAxis[0] += 1;
+    if (glfwGetKey(mWindow, GLFW_KEY_UP) == GLFW_PRESS) ev.rotationAxis[0] += 1;
     if (glfwGetKey(mWindow, GLFW_KEY_DOWN) == GLFW_PRESS)
         ev.rotationAxis[0] -= 1;
     if (glfwGetKey(mWindow, GLFW_KEY_LEFT) == GLFW_PRESS)

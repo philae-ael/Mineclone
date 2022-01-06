@@ -11,9 +11,7 @@ void Renderer::setWindowSize(int width, int height) {
     camera_controller.updateCamera(width, height);
 }
 
-void Renderer::update(float dt){
-    camera_controller.update(dt);
-}
+void Renderer::update(float dt) { camera_controller.update(dt); }
 
 void Renderer::render() {
     glClearColor(0.f, 0.f, 0.f, 1.f);

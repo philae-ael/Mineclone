@@ -8,13 +8,13 @@
 #include "logging.h"
 
 // https://stackoverflow.com/a/36934374
-template<bool...> struct bool_pack;
-template<bool... bs> 
+template <bool...>
+struct bool_pack;
+template <bool... bs>
 using all_true = std::is_same<bool_pack<bs..., true>, bool_pack<true, bs...>>;
 
-template<bool... bs> 
+template <bool... bs>
 inline constexpr bool all_true_v = all_true<bs...>::value;
-
 
 template <std::unsigned_integral T, T... Bounds>
 class range_it {
@@ -28,7 +28,7 @@ class range_it {
 
     range_it& begin() {
         auto l = log << "Range bounds: ";
-        for (auto b : bounds) l <<  b << " ";
+        for (auto b : bounds) l << b << " ";
         return *this;
     }
 
@@ -76,7 +76,7 @@ class range_it {
 
    private:
     seq_container current_seq{0};
-    Logger log {Logger::get({"Range"})};
+    Logger log{Logger::get({"Range"})};
 };
 
 #endif  // !RANGE_ITERATOR_H_

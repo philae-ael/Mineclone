@@ -11,7 +11,7 @@ template <class EventKind>
 using EventHandler = std::function<void(const Event<EventKind>&)>;
 
 template <class EventKind>
-void trace_event(const Event<EventKind> & /*event*/) {}
+void trace_event(const Event<EventKind>& /*event*/) {}
 
 namespace EventManager {
 
@@ -31,12 +31,12 @@ void subscribe(EventHandler<EventKind>&& handler) {
 }
 
 template <class EventKind>
-void dispatch(const Event<EventKind> &event) {
+void dispatch(const Event<EventKind>& event) {
     auto handlers = Storage<EventKind>::get_event_handlers();
 
     trace_event(event);
 
-    for (auto &handler : *handlers){
+    for (auto& handler : *handlers) {
         handler(event);
     }
 }

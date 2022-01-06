@@ -11,7 +11,7 @@
 #include "../utils/mat_opengl.h"
 #include "block_texture.h"
 
-struct BlockVertex  {
+struct BlockVertex {
     math::vec3f position;
     math::vec2f textpos;
     BlockTexture textid;

@@ -34,8 +34,8 @@ class CameraController {
 
         const math::vec3f direction =
             math::normalize(translation_movement_axis[0] * direction_x +
-             translation_movement_axis[1] * direction_y +
-             translation_movement_axis[2] * direction_z);
+                            translation_movement_axis[1] * direction_y +
+                            translation_movement_axis[2] * direction_z);
 
         const math::vec3f direction_rot_x = direction_x;
         const math::vec3f direction_rot_y{0, 1, 0};

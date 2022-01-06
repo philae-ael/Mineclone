@@ -6,8 +6,8 @@
 #include <optional>
 
 #include "../component/shader.h"
-#include "camera_controller.h"
 #include "../component/world.h"
+#include "camera_controller.h"
 
 class WorldRenderer {
    public:
@@ -18,7 +18,7 @@ class WorldRenderer {
 
    private:
     World world;
-    CameraController *camera_controller;
+    CameraController* camera_controller;
     std::optional<Shader> shader;
 
     GLuint VBO = 0;

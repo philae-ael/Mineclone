@@ -1,8 +1,8 @@
 #ifndef CONSTEXPR_FUNCTIONS_H_
 #define CONSTEXPR_FUNCTIONS_H_
 
-#include <type_traits>
 #include <cmath>
+#include <type_traits>
 
 namespace math {
 

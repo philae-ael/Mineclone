@@ -161,7 +161,8 @@ class Logger {
         ss << "[" << opts.category;
         if (opts.show_location)
             ss << (opts.category.empty() ? "" : ": ")
-               << opts.location->function_name() << ":" << opts.location->line();
+               << opts.location->function_name() << ":"
+               << opts.location->line();
 
         ss << "] ";
         return {ss.str(), opts.level, opts.category};

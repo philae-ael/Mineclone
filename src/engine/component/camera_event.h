@@ -2,8 +2,8 @@
 #define CAMERA_EVENT_H_
 
 #include "../system/event_manager.h"
-#include "../utils/mat.h"
 #include "../utils/logging.h"
+#include "../utils/mat.h"
 
 template <>
 struct Event<struct CameraMoveEvent_> {
@@ -14,9 +14,10 @@ struct Event<struct CameraMoveEvent_> {
 using CameraMoveEvent = Event<struct CameraMoveEvent_>;
 
 template <>
-inline void trace_event(const CameraMoveEvent & event){
+inline void trace_event(const CameraMoveEvent& event) {
     auto logger = Logger::get({"CameraMoveEvent"});
-    logger << "Translation Axis :"<< event.translationAxis << "rotationAxis :" << event.rotationAxis;
+    logger << "Translation Axis :" << event.translationAxis
+           << "rotationAxis :" << event.rotationAxis;
 }
 
 #endif  // !CAMERA_EVENT_H_
