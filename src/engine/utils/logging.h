@@ -4,30 +4,12 @@
 #include <algorithm>
 #include <chrono>
 #include <compare>
-#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <unordered_set>
 
-#if __cpp_lib_source_location >= 201907L
-#include <source_location>
-#elif __has_include(<experimental/source_location>)
-#include <experimental/source_location>
-#include <utility>
-namespace std {
-using experimental::source_location;
-};
-#else
-#error "can't find source_location header!"
-#endif
-
-#ifdef __unix__
-#include <unistd.h>
-inline bool inTerminalOut() { return isatty(fileno(stdout)); }
-#else
-inline bool inTerminalOut() { return false; }
-#endif
+#include "logging_utils.h"
 
 enum class LogLevel { Trace, Info, Warning, Error };
 
@@ -88,9 +70,11 @@ class Logger {
             const std::ios::fmtflags stream_flags{stream.flags()};
 
             auto time_end = std::chrono::system_clock::now();
-            std::chrono::duration<float> duration = time_end - Logger::time_begin;
+            std::chrono::duration<float> duration =
+                time_end - Logger::time_begin;
 
-            stream << std::fixed <<std::setw(6) << duration.count() << "ms " << buf.str() << std::endl;
+            stream << std::fixed << std::setw(6) << duration.count() << "ms "
+                   << buf.str() << std::endl;
             stream.flags(stream_flags);
         }
 
@@ -155,13 +139,33 @@ class Logger {
 
     static void set_global_log_level(LogLevel lvl) { global_log_level = lvl; }
 
-    static Logger get(
-        const std::string& category = "debug", LogLevel lvl = LogLevel::Trace,
-        const std::source_location location = std::source_location::current()) {
+    struct LoggerOptions {
+        std::string category = "debug";
+        LogLevel level = LogLevel::Trace;
+        bool show_location = true;
+        std::source_location location = std::source_location::current();
+    };
+
+    static Logger get(const auto&... opts) {
+        return get(LoggerOptions{opts...});
+    }
+
+    static Logger get(const LoggerOptions& opts) {
         std::ostringstream ss;
-        ss << "[" << category << (category.empty() ? "" : ": ")
-           << location.function_name() << ":" << location.line() << "] ";
-        return {ss.str(), lvl, category};
+
+        if (!category_known.contains(opts.category)) {
+            // Order is important to prevent infinite recursion !
+            category_known.insert(opts.category);
+            get("Categories", LogLevel::Info, false)
+                << "New category " << opts.category;
+        }
+        ss << "[" << opts.category;
+        if (opts.show_location)
+            ss << (opts.category.empty() ? "" : ": ")
+               << opts.location.function_name() << ":" << opts.location.line();
+
+        ss << "] ";
+        return {ss.str(), opts.level, opts.category};
     }
 
     static void whitelist(std::unordered_set<std::string>& s) {
@@ -176,14 +180,16 @@ class Logger {
         category_whitelist = res;
     }
 
+    static std::unordered_set<std::string> category_whitelist;
+    static std::unordered_set<std::string> category_known;
+
    private:
+    static LogLevel global_log_level;
     LogLevel minimum_log_level;
     std::ostream& stream;
     const std::string log_string;
     const std::string category;
 
-    static LogLevel global_log_level;
-    static std::unordered_set<std::string> category_whitelist;
     static std::chrono::time_point<std::chrono::system_clock> time_begin;
 
     friend LoggerStream;

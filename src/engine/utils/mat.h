@@ -4,9 +4,7 @@
 #include <algorithm>
 #include <concepts>
 #include <functional>
-#include <iomanip>
 #include <numeric>
-#include <ostream>
 #include <type_traits>
 
 #include "constexpr_functions.h"
@@ -97,21 +95,6 @@ struct mat {
 
     pointer ptr() { return &details::get(data, 0, 0); }
 };
-
-template <typename T, int N, int M>
-std::ostream &operator<<(std::ostream &s, const math::mat<T, N, M> &m) {
-    if (M != 1) s << "\n";
-
-    // NOTE: this is recursive, it works because auto is vec is M > 1
-    // and mat::value_type otherwise
-    for (const auto &c : m) {
-        if (M != 1) s << "    ";
-        s << std::setw(6) << std::setprecision(3) << c << " ";
-        if (M != 1) s << "\n";
-    }
-
-    return s;
-}
 
 template <typename T, int N, int M>
 constexpr mat<T, N, M> operator-(const mat<T, N, M> &rhs) {

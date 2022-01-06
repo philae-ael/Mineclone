@@ -84,8 +84,7 @@ class ChunkSimplifyerProxy {
 
             if (group == 0) group = details.attribute_new_group(coords);
 
-            details.log << "Got group " << group << " " << x << " " << y << " "
-                        << z;
+            details.log << "Got group " << group << " " << coords;
             for (auto neighbour : details.get_neighbours(coords)) {
                 if (neighbour == coords) continue;
 
