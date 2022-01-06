@@ -7,7 +7,7 @@
 
 int main(int argc, char** argv) {
     PROFILE_SCOPED();
-    Logger::set_global_log_level(LogLevel::Trace);
+    Logger::set_global_log_level(LogLevel::Info);
     Logger log = Logger::get("Main");
 
     std::unordered_set<std::string> whitelist{"Main", "debug"};

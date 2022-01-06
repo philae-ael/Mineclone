@@ -12,6 +12,7 @@
 #include "../utils/profiler.h"
 #include "../utils/range_iterator.h"
 #include "chunk_array.h"
+#include "mesh.h"
 
 template <typename T, int N, int M, int L>
 using array3d = std::array<std::array<std::array<T, L>, M>, N>;
@@ -24,7 +25,7 @@ struct chunk_identifier {
     int z;
 };
 
-using block_chunk_coord = std::array<std::size_t, 3>;
+using block_chunk_coord = math::vec<std::size_t, 3>;
 
 enum class BlockType { Empty, Grass };
 
@@ -41,12 +42,41 @@ struct Chunk {
 
     [[nodiscard]] chunk_identifier getId() const { return id; }
     [[nodiscard]] BlockData getBlock(block_chunk_coord coords) const {
-        auto [x, y, z] = coords;
+        auto [x, y, z] = coords.data;
 
         assert(x < chunkWidth && y < chunkHeight && z < chunkWidth);
         if (y > 2 + (unsigned int)std::abs(id.x) + (unsigned int)std::abs(id.z))
             return {BlockType::Empty};
         return {BlockType::Grass};
+    }
+
+    BlockTexture getBlockTexture(block_chunk_coord coords,
+                                 FaceKind kind) const {
+        switch (getBlock(coords).type) {
+            case BlockType::Empty:
+                Logger::get() << "Should not be here...";
+            case BlockType::Grass:
+                switch (kind) {
+                    case FaceKind::Front:
+                    case FaceKind::Back:
+                    case FaceKind::Left:
+                    case FaceKind::Right:
+                        if (coords[1] < chunkWidth - 1 &&
+                            getBlock(coords + block_chunk_coord{0, 1, 0})
+                                    .type != BlockType::Empty)
+                            return BlockTexture::GrassBottom;
+                        return BlockTexture::GrassSide;
+                    case FaceKind::Top: {
+                        if (coords[1] < chunkWidth - 1 &&
+                            getBlock(coords + block_chunk_coord{0, 1, 0})
+                                    .type != BlockType::Empty)
+                            return BlockTexture::GrassBottom;
+                        return BlockTexture::GrassTop;
+                    }
+                    case FaceKind::Bottom:
+                        return BlockTexture::GrassBottom;
+                }
+        }
     }
 
     void setBlock(int x, int y, int z, BlockData data) {
@@ -67,9 +97,6 @@ class ChunkSimplifyerProxy {
     }
 
     [[nodiscard]] BlockData getBlock(block_chunk_coord coords) const {
-        if (!details.on_boder[coords[0]][coords[1]][coords[2]])
-            return {BlockType::Empty};
-
         return chunk.getBlock(coords);
     }
 
@@ -77,89 +104,67 @@ class ChunkSimplifyerProxy {
 
     void simplify() {
         PROFILE_SCOPED();
+        auto conditionalAddBlockFace = [&](block_chunk_coord coords,
+                                           block_chunk_coord neighbour,
+                                           FaceKind kind) {
+            if (neighbour != coords &&  // chunk borders
+                chunk.getBlock(neighbour).type != BlockType::Empty)
+                return false;
+
+            mesh.addBlockFace(coords, kind,
+                              chunk.getBlockTexture(coords, kind));
+            return true;
+        };
+
         for (auto [x, y, z] : chunk_range_it{}) {
             block_chunk_coord coords{x, y, z};
-            uint32_t group = details.get_group(coords);
+            bool visible = false;
             if (chunk.getBlock(coords).type == BlockType::Empty) continue;
+            auto neighbours = get_neighbours(coords);
+            visible |=
+                conditionalAddBlockFace(coords, neighbours[0], FaceKind::Right);
+            visible |=
+                conditionalAddBlockFace(coords, neighbours[1], FaceKind::Top);
+            visible |=
+                conditionalAddBlockFace(coords, neighbours[2], FaceKind::Back);
+            visible |=
+                conditionalAddBlockFace(coords, neighbours[3], FaceKind::Left);
+            visible |= conditionalAddBlockFace(coords, neighbours[4],
+                                               FaceKind::Bottom);
+            visible |=
+                conditionalAddBlockFace(coords, neighbours[5], FaceKind::Front);
 
-            if (group == 0) group = details.attribute_new_group(coords);
-
-            details.log << "Got group " << group << " " << coords;
-            for (auto neighbour : details.get_neighbours(coords)) {
-                if (neighbour == coords) continue;
-
-                auto neighbour_group = details.get_group(neighbour);
-                if (neighbour_group != 0 && neighbour_group != group) {
-                    details.merge_groups(neighbour_group, group);
-                    group = details.get_group(coords);
-                } else if (chunk.getBlock(neighbour).type != BlockType::Empty) {
-                    details.set_group(neighbour, group);
-                }
-            }
-        }
-        for (auto [x, y, z] : chunk_range_it{}) {
-            block_chunk_coord coords{x, y, z};
-            details.on_boder[x][y][z] = details.on_group_border(coords);
+            if (visible) log << "Block " << coords << " is visible";
         }
     }
 
-    // Note: this is const means that the chunk will not modified. That's all
     Chunk chunk;
+    MeshChunk mesh;
 
    private:
-    struct details_t {
-        // 0 == no group
-        array3d<uint32_t, chunkWidth, chunkHeight, chunkWidth> block_groups{};
-        array3d<bool, chunkWidth, chunkHeight, chunkWidth> on_boder{};
-        uint32_t get_group(block_chunk_coord c) const {
-            return block_groups[c[0]][c[1]][c[2]];
-        }
-        void set_group(block_chunk_coord c, uint32_t group) {
-            block_groups[c[0]][c[1]][c[2]] = group;
-        }
+    // returns all 6 neighbours of coords in chunk. If neighbours is out
+    // of bounds, will return coords
+    // Right
+    // Top
+    // Back
+    // Left
+    // Bottom
+    // Front
+    static std::array<block_chunk_coord, 6> get_neighbours(
+        block_chunk_coord coords) {
+        std::array neighbours{coords, coords, coords, coords, coords, coords};
 
-        uint32_t attribute_new_group(block_chunk_coord coords) {
-            set_group(coords, next_free_group);
-            next_free_group += 1;
-            return get_group(coords);
-        }
+        if (coords[0] + 1 < chunkWidth) neighbours[0][0] += 1;
+        if (coords[1] + 1 < chunkHeight) neighbours[1][1] += 1;
+        if (coords[2] + 1 < chunkWidth) neighbours[2][2] += 1;
+        if (coords[0] > 0) neighbours[3][0] -= 1;
+        if (coords[1] > 0) neighbours[4][1] -= 1;
+        if (coords[2] > 0) neighbours[5][2] -= 1;
 
-        bool on_group_border(block_chunk_coord coords) const {
-            for (auto neighbour : get_neighbours(coords)) {
-                if (neighbour == coords) return true;  // Chunk border
-                if (get_group(coords) != get_group(neighbour)) return true;
-            }
-            return false;
-        }
+        return neighbours;
+    }
 
-        // returns all 6 neighbours of coords in chunk. If neighbours is out
-        // of bounds, will return coords
-        static std::array<block_chunk_coord, 6> get_neighbours(
-            block_chunk_coord coords) {
-            std::array neighbours{coords, coords, coords,
-                                  coords, coords, coords};
-
-            if (coords[0] + 1 < chunkWidth) neighbours[0][0] += 1;
-            if (coords[1] + 1 < chunkHeight) neighbours[1][1] += 1;
-            if (coords[2] + 1 < chunkWidth) neighbours[2][2] += 1;
-            if (coords[0] > 0) neighbours[3][0] -= 1;
-            if (coords[1] > 0) neighbours[4][1] -= 1;
-            if (coords[2] > 0) neighbours[5][2] -= 1;
-
-            return neighbours;
-        }
-
-        void merge_groups(uint32_t g1, uint32_t g2) {
-            log << "Merging groups " << g1 << " and " << g2;
-            for (auto [x, y, z] : chunk_range_it{}) {
-                if (block_groups[x][y][z] == g2) block_groups[x][y][z] = g1;
-            }
-        }
-        Logger log{Logger::get("ChunkSimplifyer")};
-
-        uint32_t next_free_group = 1;
-    };
-    mutable details_t details{};
+    Logger log{Logger::get("ChunkSimplifyer")};
 };
 
 template <typename T>

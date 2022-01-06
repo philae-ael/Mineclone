@@ -2,9 +2,10 @@
 
 in vec3 in_position;
 in vec2 in_texposition;
-in float in_facekind;
+in int in_textid;
+
 out vec2 out_texposition;
-out float out_facekind;
+out int out_textid;
 
 uniform mat4 model;
 uniform mat4 world;
@@ -14,5 +15,5 @@ void main(void) {
     gl_Position = proj * world * model * vec4(in_position, 1.0);
 
     out_texposition = in_texposition;
-    out_facekind = in_facekind;
+    out_textid = in_textid;
 }

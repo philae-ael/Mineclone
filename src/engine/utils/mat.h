@@ -94,6 +94,15 @@ struct mat {
     constexpr const_iterator cend() const { return const_iterator(data + N); }
 
     pointer ptr() { return &details::get(data, 0, 0); }
+
+    template <typename B,
+              std::enable_if_t<std::is_convertible_v<B, T>, bool> = true>
+    constexpr operator mat<B, N, M>() {
+        mat<B, N, M> res;
+        std::transform(cbegin(), cend(), res.begin(),
+                       [](auto x) { return static_cast<B>(x); });
+        return res;
+    }
 };
 
 template <typename T, int N, int M>
@@ -229,7 +238,7 @@ constexpr mat<T, N, N> rotate(double angle, vec<T, 3> axis) {
 
     using vec3T = vec<T, 3>;
     axis = normalize(axis);
-    if(norm2(axis) < 0.1) // axis is 0 0 0
+    if (norm2(axis) < 0.1)  // axis is 0 0 0
         return identity<T, N>();
 
     // either 1, 0, 0 or 0, 1, 0 is not parallel to p1, thus we can find a
@@ -317,13 +326,12 @@ constexpr vec<T, 3> wedge(const vec<T, 3> &lhs, const vec<T, 3> &rhs) {
             lhs.data[0] * rhs.data[1] - lhs.data[1] * rhs.data[0]};
 };
 
-
 // HACKY!
-// Use the fact that vec is a POD containing only an array of size N 
+// Use the fact that vec is a POD containing only an array of size N
 // thus we can use the storage of v as the storage of a smaller view
-template <typename T, int N, int M, typename=std::enable_if_t<(N > M)>>
-const vec<T, M>& get_view(vec<T, N> &v){
-    const vec<T, M>& p = *((vec<T, M>*) &v); 
+template <typename T, int N, int M, typename = std::enable_if_t<(N > M)>>
+const vec<T, M> &get_view(vec<T, N> &v) {
+    const vec<T, M> &p = *((vec<T, M> *)&v);
     return p;
 };
 

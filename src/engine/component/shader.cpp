@@ -70,10 +70,12 @@ Shader::Shader(const std::string& vertex_shader_source,
     auto err = initShader();
     switch (err) {
         case SCE_VERTEX_SHADER:
+            log << LogLevel::Error << "Fatal error in vertex shader";
             throw std::runtime_error(errorCompileStr(vertex_shader));
             break;
         case SCE_FRAGMENT_SHADER:
             glDeleteShader(vertex_shader);
+            log << LogLevel::Error << "Fatal error in fragment shader";
             throw std::runtime_error(errorCompileStr(fragment_shader));
             break;
         case SCE_PROGRAM_SHADER: {
@@ -81,6 +83,7 @@ Shader::Shader(const std::string& vertex_shader_source,
             glDeleteShader(vertex_shader);
             glDeleteShader(fragment_shader);
 
+            log << LogLevel::Error << "Fatal error in shader linking";
             std::string err_str;
             int max_length;
             glGetProgramiv(shader_program, GL_INFO_LOG_LENGTH, &max_length);
@@ -113,10 +116,28 @@ void Shader::useLayout(const Layout& layout) {
     for (const auto& item : layout.items) {
         GLint attrib = getAttribLocation(item.attibute_name);
 
-        glVertexAttribPointer(attrib, static_cast<GLint>(item.length),
-                              layoutTypeGL(item.type), GL_FALSE,
-                              static_cast<GLsizei>(layout.size),
-                              (void*)item.offset);  // NOLINT
+        log << LogLevel::Info << "Using layout item with"
+            << " attribute name: " << item.attibute_name
+            << " length: " << item.length << " offset: " << item.offset
+            << " type_id: " << item.type;
+        auto type = layoutTypeGL(item.type);
+        switch (type) {
+            case GL_BYTE:
+            case GL_SHORT:
+            case GL_INT:
+            case GL_UNSIGNED_BYTE:
+            case GL_UNSIGNED_SHORT:
+            case GL_UNSIGNED_INT:
+                glVertexAttribIPointer(attrib, static_cast<GLint>(item.length),
+                                       type, static_cast<GLsizei>(layout.size),
+                                       (void*)item.offset);  // NOLINT
+                break;
+            default:
+                glVertexAttribPointer(attrib, static_cast<GLint>(item.length),
+                                      layoutTypeGL(item.type), GL_FALSE,
+                                      static_cast<GLsizei>(layout.size),
+                                      (void*)item.offset);  // NOLINT
+        }
         glEnableVertexAttribArray(attrib);
     }
 

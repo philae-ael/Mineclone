@@ -4,11 +4,31 @@
 #include <glad/glad.h>
 
 #include <cstddef>
+#include <cstdint>
+#include <ostream>
 #include <vector>
 
 #include "../utils/logging.h"
 
-enum class LayoutType { Float };
+enum class LayoutType { Int, Uint, Float, Ushort };
+
+inline const char* layout_as_string(const LayoutType& l) {
+    switch (l) {
+        case LayoutType::Float:
+            return "float";
+        case LayoutType::Uint:
+            return "unsigned int";
+        case LayoutType::Ushort:
+            return "unsigned short";
+        case LayoutType::Int:
+            return "int";
+    }
+}
+
+inline std::ostream& operator<<(std::ostream& s, const LayoutType& l) {
+    s << layout_as_string(l);
+    return s;
+}
 
 struct LayoutItem {
     const char* attibute_name;
@@ -23,7 +43,13 @@ struct LayoutItem {
 inline std::size_t layoutTypeSizeof(LayoutType type) {
     switch (type) {
         case LayoutType::Float:
-            return sizeof(float);
+            return sizeof(GLfloat);
+        case LayoutType::Uint:
+            return sizeof(GLuint);
+        case LayoutType::Ushort:
+            return sizeof(GLushort);
+        case LayoutType::Int:
+            return sizeof(int32_t);
     }
     Logger::get() << LogLevel::Error << "Unknown LayoutType ?!";
     return GL_FLOAT;
@@ -33,19 +59,22 @@ inline int layoutTypeGL(LayoutType type) {
     switch (type) {
         case LayoutType::Float:
             return GL_FLOAT;
+        case LayoutType::Uint:
+            return GL_UNSIGNED_INT;
+        case LayoutType::Ushort:
+            return GL_UNSIGNED_SHORT;
+        case LayoutType::Int:
+            return GL_INT;
     }
     Logger::get() << LogLevel::Error << "Unknown LayoutType ?!";
     return GL_FLOAT;
 }
 
 struct Layout {
-    Layout(std::vector<LayoutItem>&& layout_items)
-        : items(layout_items) {
-        
+    Layout(std::vector<LayoutItem>&& layout_items) : items(layout_items) {
         size_t current_offset{};
         for (auto& item : items) {
-            if (item.offset == 0)
-                item.offset = current_offset;
+            if (item.offset == 0) item.offset = current_offset;
             current_offset += item.length * layoutTypeSizeof(item.type);
         }
 

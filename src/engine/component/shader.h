@@ -15,14 +15,11 @@ class Shader {
        public:
         UseShaderWithRAII(GLuint shader_program) {
             glGetIntegerv(GL_CURRENT_PROGRAM, &old_shader_in_use);
-            log << "Swapping from shader " << old_shader_in_use << " to "
-                << shader_program;
 
             glUseProgram(shader_program);
         }
 
         ~UseShaderWithRAII() {
-            log << "Swapping back to shader " << old_shader_in_use;
             if (old_shader_in_use) glUseProgram(old_shader_in_use);
         }
 
@@ -64,6 +61,7 @@ class Shader {
     // We are storing the current layout only to reflect that we are changing
     // some "internal"
     const Layout *current_layout = nullptr;
+    Logger log = Logger::get("Shader");
 };
 
 #endif  // !SHADER_H_
