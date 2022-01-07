@@ -76,7 +76,7 @@ stdenv.mkDerivation
     unzip
     zip
     curl
-
+    include-what-you-use
   ];
 
   shellHook = shellHook;

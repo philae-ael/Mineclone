@@ -10,7 +10,7 @@
 
 #if __cpp_lib_source_location >= 201907L
 #include <source_location>
-#elif __has_include(<experimental/source_location>)
+#elif defined __has_include && __has_include(<experimental/source_location>)
 #include <experimental/source_location>
 #include <utility>
 namespace std {

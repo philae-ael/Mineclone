@@ -187,7 +187,7 @@ constexpr auto diag(const T d1, std::convertible_to<const T> auto... args)
     -> mat<T, 1 + sizeof...(args), 1 + sizeof...(args)> {
     const unsigned int N = 1 + sizeof...(args);
 
-    std::array<T, N> argv{d1, static_cast<const T>(args)...};
+    const std::array<T, N> argv{d1, static_cast<const T>(args)...};
     mat<T, N, N> res{};
 
     for (unsigned int i = 0; i < 1 + sizeof...(args); i++) {

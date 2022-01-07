@@ -1,4 +1,4 @@
-IgnoredIntegerValues: 
+UseColor: yes
 Checks: >
   -*,
   bugprone-*,
@@ -6,6 +6,7 @@ Checks: >
   clang-diagnostic-*,
   -clang-diagnostic-unused-command-line-argument,
   misc-*,
+  -misc-no-recursion,
   -misc-non-private-member-variables-in-classes,
   modernize-*,
   -modernize-deprecated-headers,

@@ -7,6 +7,7 @@ include(Catch)
 
 
 add_executable(mineclone_tests
+  ../src/engine/utils/logging.cpp
   main.cpp
   math.cpp
   math_opengl.cpp

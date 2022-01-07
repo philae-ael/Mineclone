@@ -7,9 +7,9 @@
 #include <stdexcept>
 #include <vector>
 
+#include "../data/block_texture.h"
 #include "../utils/mat.h"
 #include "../utils/mat_opengl.h"
-#include "block_texture.h"
 
 struct BlockVertex {
     math::vec3f position;

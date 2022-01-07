@@ -6,8 +6,8 @@
 #include <iostream>
 #include <string>
 
+#include "../data/shader_layout.h"
 #include "../utils/logging.h"
-#include "shader_layout.h"
 
 class Shader {
    private:

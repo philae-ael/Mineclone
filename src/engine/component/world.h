@@ -7,11 +7,11 @@
 #include <cstdint>
 #include <stdexcept>
 
+#include "../data_structure/chunk_array.h"
 #include "../utils/logging.h"
 #include "../utils/mat.h"
 #include "../utils/profiler.h"
 #include "../utils/range_iterator.h"
-#include "chunk_array.h"
 #include "mesh.h"
 
 template <typename T, int N, int M, int L>
@@ -50,32 +50,35 @@ struct Chunk {
         return {BlockType::Grass};
     }
 
-    BlockTexture getBlockTexture(block_chunk_coord coords,
-                                 FaceKind kind) const {
+    [[nodiscard]] BlockTexture getBlockTexture(block_chunk_coord coords,
+                                               FaceKind kind) const {
         switch (getBlock(coords).type) {
-            case BlockType::Empty:
-                Logger::get() << "Should not be here...";
             case BlockType::Grass:
                 switch (kind) {
                     case FaceKind::Front:
                     case FaceKind::Back:
                     case FaceKind::Left:
                     case FaceKind::Right:
-                        if (coords[1] < chunkWidth - 1 &&
+                        if (coords[1] < chunkHeight - 1 &&
                             getBlock(coords + block_chunk_coord{0, 1, 0})
                                     .type != BlockType::Empty)
                             return BlockTexture::GrassBottom;
                         return BlockTexture::GrassSide;
                     case FaceKind::Top: {
-                        if (coords[1] < chunkWidth - 1 &&
+                        if (coords[1] < chunkHeight - 1 &&
                             getBlock(coords + block_chunk_coord{0, 1, 0})
                                     .type != BlockType::Empty)
                             return BlockTexture::GrassBottom;
                         return BlockTexture::GrassTop;
                     }
                     case FaceKind::Bottom:
+                    default:
                         return BlockTexture::GrassBottom;
                 }
+            case BlockType::Empty:
+            default:
+                Logger::get() << "Should not be here...";
+                return BlockTexture::GrassBottom;
         }
     }
 

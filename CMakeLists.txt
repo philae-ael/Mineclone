@@ -5,6 +5,8 @@ project("mineclone")
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 
+set(CMAKE_CXX_CLANG_TIDY clang-tidy)
+set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE include-what-you-use)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(MSVC)
@@ -44,8 +46,10 @@ find_package(glfw3 REQUIRED)
 find_package(glad REQUIRED)
 
 include_directories(${GLFW3_INCLUDE_DIRS})
+include_directories(vendor/stb)
 
 add_executable(mineclone
+  vendor/stb/stb_image.cpp
   src/main.cpp
   src/engine/mineclone.cpp
   src/engine/utils/mat.cpp

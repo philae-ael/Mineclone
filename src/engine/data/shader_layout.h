@@ -14,14 +14,15 @@ enum class LayoutType { Int, Uint, Float, Ushort };
 
 inline const char* layout_as_string(const LayoutType& l) {
     switch (l) {
-        case LayoutType::Float:
-            return "float";
         case LayoutType::Uint:
             return "unsigned int";
         case LayoutType::Ushort:
             return "unsigned short";
         case LayoutType::Int:
             return "int";
+        default:
+        case LayoutType::Float:
+            return "float";
     }
 }
 

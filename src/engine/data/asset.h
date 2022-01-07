@@ -5,7 +5,7 @@
 #include <fstream>
 #include <map>
 
-#include "component/shader.h"
+#include "../component/shader.h"
 
 namespace fs = std::filesystem;
 

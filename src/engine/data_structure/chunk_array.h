@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <vector>
 
-const unsigned int default_half_size = 2;
+const unsigned int default_half_size = 12;
 
 template <typename T, T(factory)(int x, int y) = T::T>
 class chunk_array {

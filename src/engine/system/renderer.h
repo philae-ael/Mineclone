@@ -6,7 +6,7 @@
 
 class Renderer {
    public:
-    Renderer();
+    Renderer() = default;
     Renderer(Renderer &&) = delete;
     Renderer(const Renderer &) = delete;
     Renderer &operator=(Renderer &&) = delete;
@@ -18,10 +18,8 @@ class Renderer {
     void setWindowSize(int width, int height);
 
    private:
-    // Relative position is important! camera_controller
-    // will be created before world_renderer
     CameraController camera_controller;
-    WorldRenderer world_renderer;
+    WorldRenderer world_renderer{&camera_controller};
     Logger log{Logger::get({"Renderer"})};
 };
 

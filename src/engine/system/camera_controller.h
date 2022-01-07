@@ -4,7 +4,7 @@
 #include <cmath>
 
 #include "../component/camera.h"
-#include "../component/camera_event.h"
+#include "../data/camera_event.h"
 #include "../utils/mat_opengl.h"
 #include "../utils/math.h"
 #include "event_manager.h"
@@ -42,7 +42,7 @@ class CameraController {
         const math::vec3f direction_rot_z = direction_z;
 
         // = sin² of angle between direction_y and direction_z
-        constexpr float sin_lim = math::sin(M_PI / 10);  // =  9deg
+        constexpr double sin_lim = math::sin(M_PI / 10);  // =  9deg
         const float s2 = math::norm2(math::wedge(direction_y, direction_z));
         if (s2 < sin_lim * sin_lim) {
             // = cos of angle between direction_y and direction_z

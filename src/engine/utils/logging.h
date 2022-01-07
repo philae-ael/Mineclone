@@ -5,9 +5,11 @@
 #include <chrono>
 #include <compare>
 #include <iostream>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <unordered_set>
+#include <utility>
 
 #include "logging_utils.h"
 
@@ -77,7 +79,7 @@ class Logger {
             const std::ios::fmtflags stream_flags{stream.flags()};
 
             auto time_end = std::chrono::system_clock::now();
-            std::chrono::duration<float> duration =
+            std::chrono::duration<float, std::milli> duration =
                 time_end - Logger::time_begin;
 
             stream << std::fixed << std::setw(6) << duration.count() << "ms "
@@ -85,16 +87,13 @@ class Logger {
             stream.flags(stream_flags);
         }
 
-        LoggerStream(LoggerStream& l) =
-            delete;  // This class should ONLY be lvalue
-        LoggerStream& operator=(LoggerStream& l) = delete;
-
         LoggerStream(std::ostream& stream, LogLevel minimum_log_level,
                      const std::string& category)
             : log_level(minimum_log_level),
               minimum_log_level(minimum_log_level),
               stream(stream),
               category(category) {}
+
         LoggerStream(LoggerStream&& l) noexcept
             : log_level(l.log_level),
               minimum_log_level(l.minimum_log_level),
@@ -111,24 +110,15 @@ class Logger {
     };
 
    public:
-    Logger(const std::string& log_string, LogLevel log_level = LogLevel::Trace,
-           const std::string& category = "", std::ostream& stream = std::cout)
+    Logger(std::string log_string, LogLevel log_level = LogLevel::Trace,
+           std::string category = "", std::ostream& stream = std::cout)
         : minimum_log_level(log_level),
           stream(stream),
-          log_string(log_string),
-          category(category) {}
+          log_string(std::move(log_string)),
+          category(std::move(category)) {}
 
-    Logger(Logger& l)
-        : minimum_log_level(l.minimum_log_level),
-          stream(l.stream),
-          log_string(l.log_string),
-          category(l.category) {}
-
-    Logger(Logger&& l)
-        : minimum_log_level(l.minimum_log_level),
-          stream(l.stream),
-          log_string(l.log_string),
-          category(l.category) {}
+    Logger(Logger& l) = default;
+    Logger(Logger&& l) = default;
 
     LoggerStream operator<<(LogLevel lvl) {
         LoggerStream s{stream, std::max(global_log_level, minimum_log_level),
@@ -144,29 +134,18 @@ class Logger {
         return s;
     };
 
+    LoggerStream get_stream() {
+        LoggerStream s{stream, std::max(global_log_level, minimum_log_level),
+                       category};
+        s << log_string;
+        return s;
+    };
+
     static void set_global_log_level(LogLevel lvl) { global_log_level = lvl; }
 
     static Logger get(
-        LoggerOptions opts = LoggerOptions(),
-        std::source_location location = std::source_location::current()) {
-        std::ostringstream ss;
-        if (!opts.location.has_value()) opts.location = location;
-
-        if (!category_known.contains(opts.category)) {
-            // Order is important to prevent infinite recursion !
-            category_known.insert(opts.category);
-            get({"Categories", LogLevel::Info, false})
-                << "New category " << opts.category;
-        }
-        ss << "[" << opts.category;
-        if (opts.show_location)
-            ss << (opts.category.empty() ? "" : ": ")
-               << opts.location->function_name() << ":"
-               << opts.location->line();
-
-        ss << "] ";
-        return {ss.str(), opts.level, opts.category};
-    }
+        LoggerOptions opts = {},
+        std::source_location location = std::source_location::current());
 
     static void whitelist(std::unordered_set<std::string>& s) {
         category_whitelist.merge(s);

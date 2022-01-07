@@ -4,7 +4,7 @@
 
 #include <stdexcept>
 
-#include "shader_layout.h"
+#include "../data/shader_layout.h"
 
 #ifdef DEBUG
 GLuint Shader::UseShaderWithRAII::in_use_shader_program = 0;

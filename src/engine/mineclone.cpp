@@ -8,7 +8,7 @@
 #include <exception>
 #include <iostream>
 
-#include "component/camera_event.h"
+#include "data/camera_event.h"
 #include "system/event_manager.h"
 #include "system/renderer.h"
 #include "utils/logging.h"
@@ -29,6 +29,8 @@ Mineclone::Mineclone() {
         if (mWindow == nullptr) return WinInitError::WE_CREATION;
 
         glfwMakeContextCurrent(mWindow);
+        glfwSwapInterval(0);
+
         gladLoadGL();
         log << LogLevel::Info << "Opengl version: " << glGetString(GL_VERSION)
             << "\n";

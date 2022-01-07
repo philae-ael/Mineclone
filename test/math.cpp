@@ -159,6 +159,7 @@ TEST_CASE("math::mat subscrition") {
     a += 1;
     v[1] += 1;
     REQUIRE(v == math::vec2i{2, 3});
+    REQUIRE(a == 2);
 }
 
 TEST_CASE("math::mat equal") {
