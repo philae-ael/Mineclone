@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <ostream>
 #include <vector>
 
@@ -72,7 +73,9 @@ inline int layoutTypeGL(LayoutType type) {
 }
 
 struct Layout {
-    Layout(std::vector<LayoutItem>&& layout_items) : items(layout_items) {
+    template <std::size_t N>
+    Layout(const std::array<LayoutItem, N>& layout_items)
+        : items(layout_items.begin(), layout_items.end()) {
         size_t current_offset{};
         for (auto& item : items) {
             if (item.offset == 0) item.offset = current_offset;
@@ -80,7 +83,7 @@ struct Layout {
         }
 
         size = current_offset;
-    };
+    }
 
     std::vector<LayoutItem> items;
     std::size_t size;

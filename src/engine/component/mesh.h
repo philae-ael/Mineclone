@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "../data/block_texture.h"
+#include "../data/shader_layout.h"
 #include "../utils/mat.h"
 #include "../utils/mat_opengl.h"
 
@@ -22,6 +23,12 @@ enum class FaceKind { Top, Bottom, Front, Back, Left, Right };
 class MeshChunk {
    public:
     MeshChunk() { updateModelMatrix(); }
+
+    static constexpr std::array layout{ 
+        LayoutItem{"in_position", LayoutType::Float, 3},
+        LayoutItem{"in_texposition", LayoutType::Float, 2},
+        LayoutItem{"in_textid", LayoutType::Int, 1},
+    };
 
     // position is left top corner
     void addBlockFace(math::vec3f coords, FaceKind kind,
@@ -87,10 +94,10 @@ class MeshChunk {
     }
 
     void updateModelMatrix() { model_matrix = math::scale(scaling_factor); }
-    const math::mat4f& getModelMatrix() const { return model_matrix; }
-    const BlockVertex* data() const { return vertices.data(); }
-    std::size_t size() const { return vertices.size(); }
-    std::size_t bytes() const { return sizeof(BlockVertex) * size(); }
+    [[nodiscard]] const math::mat4f& getModelMatrix() const { return model_matrix; }
+    [[nodiscard]] const BlockVertex* data() const { return vertices.data(); }
+    [[nodiscard]] std::size_t size() const { return vertices.size(); }
+    [[nodiscard]] std::size_t bytes() const { return sizeof(BlockVertex) * size(); }
 
    private:
     std::vector<BlockVertex> vertices{};

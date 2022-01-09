@@ -1,5 +1,5 @@
-#ifndef WORLD_H_
-#define WORLD_H_
+#ifndef CHUNK_H_
+#define CHUNK_H_
 
 #include <array>
 #include <cassert>
@@ -142,7 +142,9 @@ class ChunkSimplifyerProxy {
     }
 
     Chunk chunk;
-    MeshChunk mesh;
+    
+    using mesh_type = MeshChunk;
+    mesh_type mesh;
 
    private:
     // returns all 6 neighbours of coords in chunk. If neighbours is out
@@ -175,12 +177,6 @@ T chunk_factory_generic(int x, int y) {
     return {chunk_identifier{x, y}};
 }
 
-struct World {
-    using storage = chunk_array<ChunkSimplifyerProxy, chunk_factory_generic>;
-    storage data;
+using chunk_storage = chunk_array<ChunkSimplifyerProxy, chunk_factory_generic>;
 
-    typename storage::iterator begin() { return data.begin(); }
-    typename storage::iterator end() { return data.end(); }
-};
-
-#endif  // !WORLD_H_
+#endif  // !CHUNK_H_

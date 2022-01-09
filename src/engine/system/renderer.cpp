@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 
 #include "../utils/mat_opengl.h"
-#include "world_renderer.h"
+#include "world.h"
 
 void Renderer::setWindowSize(int width, int height) {
     camera_controller.updateCamera(width, height);

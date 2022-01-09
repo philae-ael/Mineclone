@@ -69,6 +69,7 @@ class chunk_array {
     };
 
     using iterator = chunk_array_it;
+    using value_type = T;
 
     chunk_array(unsigned int half_size = default_half_size)
         : half_size(half_size) {

@@ -55,7 +55,7 @@ add_executable(mineclone
   src/engine/utils/mat.cpp
   src/engine/utils/logging.cpp
   src/engine/system/renderer.cpp
-  src/engine/system/world_renderer.cpp
+  src/engine/system/world.cpp
   src/engine/component/shader.cpp)
 
 target_link_libraries(mineclone PRIVATE glfw::glfw)

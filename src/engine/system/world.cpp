@@ -1,7 +1,6 @@
-#include "world_renderer.h"
+#include "world.h"
 
 #include <glad/glad.h>
-#include <stb_image.h>
 
 #include <cassert>
 #include <cmath>
@@ -11,9 +10,9 @@
 #include <iterator>
 #include <optional>
 
+#include "../component/chunk.h"
 #include "../component/mesh.h"
 #include "../component/shader.h"
-#include "../component/world.h"
 #include "../data/asset.h"
 #include "../data/block_texture.h"
 #include "../data/shader_layout.h"
@@ -23,7 +22,7 @@
 #include "camera_controller.h"
 
 const std::size_t max_size = 30000 * sizeof(BlockVertex);
-WorldRenderer::WorldRenderer(CameraController* camera_controller)
+World::World(CameraController* camera_controller)
     : camera_controller(camera_controller) {
     camera_controller->getCamera().position = {4, 5, 4};
     camera_controller->lookAt({0, 0, 0});
@@ -31,53 +30,17 @@ WorldRenderer::WorldRenderer(CameraController* camera_controller)
     shader.emplace(get_asset<AssetKind::Shader>("base"));
     auto with_shader = shader->use();
 
+
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VAO);
     glBufferData(GL_ARRAY_BUFFER, max_size, nullptr, GL_DYNAMIC_DRAW);
+    
+    shader->useLayout(chunk_storage::value_type::mesh_type::layout);
 
-    Layout layout{{
-        {"in_position", LayoutType::Float, 3},
-        {"in_texposition", LayoutType::Float, 2},
-        {"in_textid", LayoutType::Int, 1},
-    }};
-
-    shader->useLayout(layout);
-
-    {  // LOAD TEXTURE
-        std::string path = get_asset_path(AssetKind::Texture, "minecraft.png");
-        int x, y, n;
-        unsigned char* data = stbi_load(path.c_str(), &x, &y, &n, 0);
-
-        const int tiles = 16;
-        int subWidth = x / tiles;
-        int subHeight = y / tiles;
-
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-        glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_SRGB8_ALPHA8, subWidth,
-                     subHeight, tiles * tiles, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                     nullptr);
-
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, x);
-        for (int i = 0; i < tiles; i++)
-            for (int j = 0; j < tiles; j++)
-                glTexSubImage3D(
-                    GL_TEXTURE_2D_ARRAY, 0, 0, 0, tiles * j + i, subWidth,
-                    subHeight, 1, GL_RGBA, GL_UNSIGNED_BYTE,
-                    (void*)(data +
-                            static_cast<std::ptrdiff_t>(j * x + i * subWidth) *
-                                n));
-
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S,
-                        GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T,
-                        GL_CLAMP_TO_EDGE);
-        stbi_image_free(data);
-    }  // END LAOD TEXTURE
+    atlas.emplace(get_asset<AssetKind::TextureAtlas>("minecraft.png", 16, 16));
+    atlas->bind();
 
     glEnable(GL_FRAMEBUFFER_SRGB);
     glEnable(GL_DEPTH_TEST);
@@ -90,6 +53,7 @@ void renderMeshChunk(const CameraController* camera_controller, Shader& shader,
 
     glEnableVertexAttribArray(0);
     glBindVertexArray(VAO);
+    // atlas->bind();
 
     glBufferSubData(GL_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(mesh.bytes()),
                     mesh.data());
@@ -113,8 +77,8 @@ void renderMeshChunk(const CameraController* camera_controller, Shader& shader,
     glDisableVertexAttribArray(0);
 }
 
-void WorldRenderer::render() {
-    for (auto&& chunk : world.data) {
+void World::render() {
+    for (auto&& chunk : world) {
         assert(chunk.mesh.bytes() < max_size);
         renderMeshChunk(camera_controller, *shader, chunk, VAO);
     }
