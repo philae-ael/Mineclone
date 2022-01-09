@@ -5,12 +5,17 @@ Inspired by the numerous clones of Minecraft
 
 
 ## Build 
-Requires `conan` (for prerequisites) and `clang` (which support as much as possible c++20, I compile using clang 13). 
+Requires `conan` (for prerequisites) and `clang` (13 or more) or `gcc` (11 or more)
 
-`GCC 11` fails miserably to compile this program. Maybe GCC will 13 work. I did not try.
-
+You can compile with
 ```
 >>> mkdir build && cd Build
 >>> cmake ..
 >>> make 
+```
+
+Or you could use a wrapper around make and cmake: 
+```
+source .env
+make help
 ```
