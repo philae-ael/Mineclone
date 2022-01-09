@@ -28,19 +28,22 @@ World::World(CameraController* camera_controller)
     camera_controller->lookAt({0, 0, 0});
 
     shader.emplace(get_asset<AssetKind::Shader>("base"));
-    auto with_shader = shader->use();
-
-
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VAO);
-    glBufferData(GL_ARRAY_BUFFER, max_size, nullptr, GL_DYNAMIC_DRAW);
-    
-    shader->useLayout(chunk_storage::value_type::mesh_type::layout);
-
     atlas.emplace(get_asset<AssetKind::TextureAtlas>("minecraft.png", 16, 16));
-    atlas->bind();
+
+    for (auto& [chunk, renderer_context] : world) {
+        const auto& mesh = chunk.mesh;
+        const auto ctx = renderer_context.use();
+
+        glGenBuffers(1, &VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(mesh.bytes()),
+                     mesh.data(), GL_STATIC_DRAW);
+
+        auto with_shader = shader->use();
+        shader->useLayout(decltype(chunk)::mesh_type::layout);
+
+        atlas->bind();
+    }
 
     glEnable(GL_FRAMEBUFFER_SRGB);
     glEnable(GL_DEPTH_TEST);
@@ -48,15 +51,12 @@ World::World(CameraController* camera_controller)
 }
 
 void renderMeshChunk(const CameraController* camera_controller, Shader& shader,
-                     const ChunkSimplifyerProxy& chunk, GLuint VAO) {
+                     const ChunkSimplifyerProxy& chunk,
+                     const RendererContext& renderer_context) {
     const auto& mesh = chunk.mesh;
-
-    glEnableVertexAttribArray(0);
-    glBindVertexArray(VAO);
+    auto ctx = renderer_context.use();
     // atlas->bind();
 
-    glBufferSubData(GL_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(mesh.bytes()),
-                    mesh.data());
     auto with_shader = shader.use();
 
     auto model_trans = mesh.getModelMatrix();
@@ -74,12 +74,11 @@ void renderMeshChunk(const CameraController* camera_controller, Shader& shader,
     glUniformMatrix4fv(projUnif, 1, GL_TRUE, proj.ptr());
 
     glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh.size()));
-    glDisableVertexAttribArray(0);
 }
 
 void World::render() {
-    for (auto&& chunk : world) {
+    for (auto& [chunk, renderer_context] : world) {
         assert(chunk.mesh.bytes() < max_size);
-        renderMeshChunk(camera_controller, *shader, chunk, VAO);
+        renderMeshChunk(camera_controller, *shader, chunk, renderer_context);
     }
 }

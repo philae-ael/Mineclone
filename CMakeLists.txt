@@ -21,24 +21,30 @@ endif()
 
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
   message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-  file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/v0.16.1/conan.cmake"
-                "${CMAKE_BINARY_DIR}/conan.cmake"
-                EXPECTED_HASH SHA256=396e16d0f5eabdc6a14afddbcfff62a54a7ee75c6da23f32f7a31bc85db23484
-                TLS_VERIFY ON)
+  file(
+    DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/v0.16.1/conan.cmake"
+    "${CMAKE_BINARY_DIR}/conan.cmake"
+    EXPECTED_HASH SHA256=396e16d0f5eabdc6a14afddbcfff62a54a7ee75c6da23f32f7a31bc85db23484
+    TLS_VERIFY ON
+  )
 endif()
 
 include(${CMAKE_BINARY_DIR}/conan.cmake)
 
-conan_cmake_configure(REQUIRES glfw/3.3.6 glad/0.1.34 catch2/2.13.7
-                      GENERATORS cmake_find_package
-                      OPTIONS )
+conan_cmake_configure(
+  REQUIRES glfw/3.3.6 glad/0.1.34 catch2/2.13.7
+  GENERATORS cmake_find_package
+  OPTIONS
+)
 
 conan_cmake_autodetect(settings)
 
-conan_cmake_install(PATH_OR_REFERENCE .
-                    BUILD missing
-                    REMOTE conancenter
-                    SETTINGS ${settings})
+conan_cmake_install(
+  PATH_OR_REFERENCE .
+  BUILD missing
+  REMOTE conancenter
+  SETTINGS ${settings}
+)
 
 
 
@@ -48,7 +54,8 @@ find_package(glad REQUIRED)
 include_directories(${GLFW3_INCLUDE_DIRS})
 include_directories(vendor/stb)
 
-add_executable(mineclone
+add_executable(
+  mineclone
   vendor/stb/stb_image.cpp
   src/main.cpp
   src/engine/mineclone.cpp
@@ -56,7 +63,9 @@ add_executable(mineclone
   src/engine/utils/logging.cpp
   src/engine/system/renderer.cpp
   src/engine/system/world.cpp
-  src/engine/component/shader.cpp)
+  src/engine/component/renderer_context.cpp
+  src/engine/component/shader.cpp
+)
 
 target_link_libraries(mineclone PRIVATE glfw::glfw)
 target_link_libraries(mineclone PRIVATE glad::glad)

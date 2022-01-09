@@ -142,7 +142,7 @@ class ChunkSimplifyerProxy {
     }
 
     Chunk chunk;
-    
+
     using mesh_type = MeshChunk;
     mesh_type mesh;
 
@@ -172,11 +172,27 @@ class ChunkSimplifyerProxy {
     Logger log{Logger::get({"ChunkSimplifyer"})};
 };
 
-template <typename T>
+template <class T>
 T chunk_factory_generic(int x, int y) {
     return {chunk_identifier{x, y}};
 }
 
-using chunk_storage = chunk_array<ChunkSimplifyerProxy, chunk_factory_generic>;
+template <class T, class S>
+std::pair<T, S> pair_chunk_factory_generic(int x, int y) {
+    return std::pair{chunk_factory_generic<T>(x, y), S{}};
+}
+
+template <typename T>
+struct chunk_storage {
+    using type = chunk_array<std::pair<ChunkSimplifyerProxy, T>,
+                             &pair_chunk_factory_generic<ChunkSimplifyerProxy, T>>;
+};
+template <>
+struct chunk_storage<void> {
+    using type = chunk_array<ChunkSimplifyerProxy, &chunk_factory_generic>;
+};
+
+template <typename T = void>
+using chunk_storage_t = typename chunk_storage<T>::type;
 
 #endif  // !CHUNK_H_

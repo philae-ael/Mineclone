@@ -6,6 +6,7 @@
 #include <optional>
 
 #include "../component/chunk.h"
+#include "../component/renderer_context.h"
 #include "../component/shader.h"
 #include "../component/texture_atlas.h"
 #include "camera_controller.h"
@@ -18,13 +19,12 @@ class World {
     void render();
 
    private:
-    chunk_storage world;
+    chunk_storage_t<RendererContext> world;
     CameraController* camera_controller;
     std::optional<Shader> shader;
     std::optional<TextureAtlas> atlas;
 
     GLuint VBO = 0;
-    GLuint VAO = 0;
 };
 
 #endif  // !WORLD_H_

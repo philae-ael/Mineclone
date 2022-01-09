@@ -13,10 +13,8 @@ class Shader {
    private:
     class UseShaderWithRAII {
        public:
-        UseShaderWithRAII(GLuint shader_program) {
-            glGetIntegerv(GL_CURRENT_PROGRAM, &old_shader_in_use);
-
-            glUseProgram(shader_program);
+        UseShaderWithRAII(GLuint shader_program, GLuint current_shader): old_shader_in_use(current_shader) {
+            if(shader_program) glUseProgram(shader_program);
         }
 
         ~UseShaderWithRAII() {
@@ -24,7 +22,7 @@ class Shader {
         }
 
        private:
-        GLint old_shader_in_use = 0;
+        GLuint old_shader_in_use;
         Logger log = Logger::get({"Shader"});
     };
 
@@ -50,7 +48,10 @@ class Shader {
     }
 
     [[nodiscard]] UseShaderWithRAII use() const {
-        return UseShaderWithRAII{shader_program};
+        if (shader_program == current_shader)
+            return {0, 0}; // Do nothing shader swap
+        current_shader = shader_program;
+        return {shader_program, current_shader};
     }
 
     void useLayout(const Layout &);
@@ -62,6 +63,8 @@ class Shader {
     // some "internal"
     const Layout *current_layout = nullptr;
     Logger log = Logger::get({"Shader"});
+
+    static GLuint current_shader;
 };
 
 #endif  // !SHADER_H_

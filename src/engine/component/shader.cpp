@@ -6,9 +6,7 @@
 
 #include "../data/shader_layout.h"
 
-#ifdef DEBUG
-GLuint Shader::UseShaderWithRAII::in_use_shader_program = 0;
-#endif
+GLuint Shader::current_shader = 0;
 
 Shader::Shader(const std::string& vertex_shader_source,
                const std::string& fragment_shader_source) {
