@@ -13,7 +13,7 @@ class Shader {
    private:
     class UseShaderWithRAII {
        public:
-        UseShaderWithRAII(GLuint shader_program, GLuint current_shader): old_shader_in_use(current_shader) {
+        UseShaderWithRAII(GLuint shader_program, GLuint current_shader_): old_shader_in_use(current_shader_) {
             if(shader_program) glUseProgram(shader_program);
         }
 
@@ -29,6 +29,7 @@ class Shader {
    public:
     Shader(const std::string &vertex_shader_source,
            const std::string &fragment_shader_source);
+    Shader(Shader &) = delete;
     Shader(Shader &&other) noexcept {
         vertex_shader = other.vertex_shader;
         fragment_shader = other.fragment_shader;

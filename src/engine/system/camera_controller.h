@@ -1,7 +1,7 @@
 #ifndef CAMERA_CONTROLLER_H_
 #define CAMERA_CONTROLLER_H_
 
-#include <cmath>
+#include <numbers>
 
 #include "../component/camera.h"
 #include "../data/camera_event.h"
@@ -42,7 +42,7 @@ class CameraController {
         const math::vec3f direction_rot_z = direction_z;
 
         // = sin² of angle between direction_y and direction_z
-        constexpr double sin_lim = math::sin(M_PI / 10);  // =  9deg
+        constexpr double sin_lim = math::sin(std::numbers::pi / 10);  // =  9deg
         const float s2 = math::norm2(math::wedge(direction_y, direction_z));
         if (s2 < sin_lim * sin_lim) {
             // = cos of angle between direction_y and direction_z
@@ -124,12 +124,12 @@ class CameraController {
 
    private:
     Camera camera{};
-    const float fov = M_PI / 2;
+    const float fov = std::numbers::pi_v<float> / 2;
     const float near = 1.;
     const float far = 40.;
 
     const float speed = 5;
-    const float rot_speed = M_PI;
+    const float rot_speed = std::numbers::pi_v<float>;
     math::vec3f translation_movement_axis{};
     math::vec3f rotation_movement_axis{};
 

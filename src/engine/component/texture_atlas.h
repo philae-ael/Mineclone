@@ -15,7 +15,7 @@ class TextureAtlas {
     TextureAtlas(const fs::path& path, std::size_t horizontal_tiles,
                  std::size_t vertical_tiles) {
         int x, y, n;
-        unsigned char* data = stbi_load(path.c_str(), &x, &y, &n, 0);
+        unsigned char* data = stbi_load(path.string().c_str(), &x, &y, &n, 0);
 
         std::size_t subWidth = x / horizontal_tiles;
         std::size_t subHeight = y / vertical_tiles;
@@ -36,7 +36,7 @@ class TextureAtlas {
                                 static_cast<GLsizei>(subWidth),
                                 static_cast<GLsizei>(subHeight), 1, GL_RGBA,
                                 GL_UNSIGNED_BYTE,
-                                (void*)(data + j * x + i * subWidth * n));
+                                (void*)(data + (j * x * subHeight + i * subWidth) * n));
 
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

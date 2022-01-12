@@ -94,6 +94,7 @@ struct Chunk {
 class ChunkSimplifyerProxy {
    public:
     ChunkSimplifyerProxy(chunk_identifier id) : chunk(id) { simplify(); }
+    ChunkSimplifyerProxy(ChunkSimplifyerProxy&&) = default;
 
     void setBlock(int x, int y, int z, const BlockData& data) {
         chunk.setBlock(x, y, z, data);
@@ -174,7 +175,7 @@ class ChunkSimplifyerProxy {
 
 template <class T>
 T chunk_factory_generic(int x, int y) {
-    return {chunk_identifier{x, y}};
+    return T{chunk_identifier{x, y}};
 }
 
 template <class T, class S>

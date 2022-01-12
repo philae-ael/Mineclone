@@ -182,8 +182,8 @@ constexpr mat<T, N, L> operator*(const mat<T, N, M> &rhs,
 template <typename T, int N>
 using vec = mat<T, N, 1>;
 
-template <typename T>
-constexpr auto diag(const T d1, std::convertible_to<const T> auto... args)
+template <typename T, std::convertible_to<const T> ...Args>
+constexpr auto diag(const T d1,  Args... args)
     -> mat<T, 1 + sizeof...(args), 1 + sizeof...(args)> {
     const unsigned int N = 1 + sizeof...(args);
 
@@ -212,7 +212,7 @@ constexpr vec<T, N> normalize(const vec<T, N> &v) {
     if (n == 0.)
         return v;  // v == 0 0 0...  so it doesnt really matter allow constexpr
                    // evaluation
-    return sqrt(1 / n) * v;
+    return static_cast<float>(sqrt(1 / n)) * v;
 }
 
 template <typename T>

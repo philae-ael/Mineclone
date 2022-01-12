@@ -2,6 +2,9 @@
 #define MAT_OPENGL_H_
 
 #include "mat.h"
+#include <numbers>
+#include <cmath>
+
 
 namespace math {
 
@@ -16,7 +19,7 @@ constexpr mat<T, 4, 4> translation(T x, T y, T z) {  // NOLINT
 
 template <typename T>
 mat<T, 4, 4> projection(T aspect_ratio, T fov, T near, T far) {  // NOLINT
-    const float f = std::tan(M_PI / 2 - fov / 2);
+    const float f = static_cast<float>(std::tan(std::numbers::pi / 2 - fov / 2));
     const auto A = (near + far) / (near - far);
     const auto B = 2 * near * far / (near - far);
     return {{{f / aspect_ratio, 0, 0, 0},

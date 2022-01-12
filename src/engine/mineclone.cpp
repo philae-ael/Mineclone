@@ -15,9 +15,10 @@
 
 Mineclone::Mineclone() {
     enum class WinInitError { WE_SUCCESS, WE_CREATION };
-    auto createWindow = [this]() -> WinInitError {
-        const int win_width = 800;
-        const int win_height = 600;
+    const int win_width = 800;
+    const int win_height = 600;
+    auto createWindow = [&]() -> WinInitError {
+
         glfwInit();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
@@ -47,8 +48,9 @@ Mineclone::Mineclone() {
             break;
     }
 
-    renderer.emplace();
+    renderer = std::make_unique<Renderer>();
     auto resize_callback = [](GLFWwindow* window, int width, int height) {
+        // Can't bind this the normal way bc we need to convert the lambda to void (*)(GLFWindow*,int,int)
         auto* self = (Mineclone*)glfwGetWindowUserPointer(window);
         glViewport(0, 0, width, height);
         self->renderer->setWindowSize(width, height);
@@ -56,9 +58,15 @@ Mineclone::Mineclone() {
 
     glfwSetWindowUserPointer(mWindow, this);
     glfwSetFramebufferSizeCallback(mWindow, resize_callback);
+
+    resize_callback(mWindow, win_width, win_height); 
 }
 
-Mineclone::~Mineclone() { glfwTerminate(); }
+Mineclone::~Mineclone() { 
+    // We do it this way so that glfwTerminate is called after deleting Renderer
+    renderer.reset();
+    glfwTerminate(); 
+}
 
 void convertDispatchEvent(GLFWwindow* mWindow) {
     CameraMoveEvent ev{};

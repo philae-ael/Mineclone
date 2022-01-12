@@ -5,7 +5,7 @@
 // must be after glad
 #include <GLFW/glfw3.h>
 
-#include <optional>
+#include <memory>
 
 #include "system/event_manager.h"
 #include "system/renderer.h"
@@ -18,8 +18,7 @@ class Mineclone {
     void run();
 
    private:
-    // Allow to delay initialisation
-    std::optional<Renderer> renderer;
+    std::unique_ptr<Renderer> renderer;
     GLFWwindow *mWindow = nullptr;
     Logger log{Logger::get({"Mineclone"})};
 };

@@ -23,8 +23,7 @@ class chunk_array {
         }
         static chunk_array_it end(chunk_array* c) {
             value_type* vv = &(c->data);
-            auto outer = vv->end();
-            return chunk_array_it{outer, outer->begin(), vv};
+            return chunk_array_it{vv->end(), {}, vv};
         }
         chunk_array_it operator++(int) {  // postfix++
             chunk_array_it ret = *this;
@@ -33,12 +32,10 @@ class chunk_array {
         }
         chunk_array_it& operator++() {  // ++prefix
             inner++;
-            if (inner == outer->end()) {
-                do {
-                    outer++;
+            while (outer != vv->end() && inner == outer->end()) {
+                outer++;
+                if (outer != vv->end())
                     inner = outer->begin();
-
-                } while (inner == outer->end() && outer < vv->end());
             }
             return *this;
         }
@@ -136,10 +133,11 @@ class chunk_array {
                                                           std::size_t j) const {
         auto [current_i, current_j] =
             get_indices_from_id(current_position.x, current_position.y);
-        auto dx = (i - current_i) % size(), dy = (j - current_j) % size();
+        int dx = (i - current_i) % size(),
+            dy = (j - current_j) % size();
 
-        if (dx > half_size) dx -= size();
-        if (dy > half_size) dy -= size();
+        if (dx > static_cast<int>(half_size)) dx -= size();
+        if (dy > static_cast<int>(half_size)) dy -= size();
 
         return {current_position.x + dx, current_position.y + dy};
     }

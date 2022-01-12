@@ -2,3 +2,17 @@ build/
 .cache/
 .direnv/
 Testing/
+
+.vs/mineclone/
+
+.vs/CMake Overview
+
+.vs/cmake.db
+
+.vs/ProjectSettings.json
+
+.vs/slnx.sqlite
+
+.vs/VSWorkspaceState.json
+
+CMakeSettings.json

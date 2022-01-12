@@ -6,8 +6,8 @@
 class RendererContext {
     class RendererContextRAII {
        public:
-        RendererContextRAII(GLuint vao, GLuint current_vao)
-            : old_vao(current_vao) {
+        RendererContextRAII(GLuint vao, GLuint current_vao_)
+            : old_vao(current_vao_) {
             if (vao) glBindVertexArray(vao);
         }
         ~RendererContextRAII() {

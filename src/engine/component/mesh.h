@@ -1,8 +1,6 @@
 #ifndef MESH_H_
 #define MESH_H_
 
-#include <bits/iterator_concepts.h>
-
 #include <cstddef>
 #include <stdexcept>
 #include <vector>

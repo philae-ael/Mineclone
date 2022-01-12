@@ -59,10 +59,15 @@ struct rank_h<std::array<T, N>>
     : std::integral_constant<std::size_t, 1 + rank<T>::value> {};
 
 template <class T>
+struct rank_h<std::unordered_set<T>>
+    : std::integral_constant<std::size_t, 1 + rank<T>::value> {};
+
+
+template <class T>
 struct rank : rank_h<std::remove_cv_t<T>> {};
 
 template <class T>
-constexpr bool rank_v = is_container<T>::value;
+constexpr std::size_t rank_v = rank<T>::value;
 };  // namespace nostd
 
 // std::set, array, math::mat<T, N, M > 1>
@@ -81,7 +86,7 @@ std::ostream& operator<<(std::ostream& s, const T& cont) {
 }
 
 template <class T, std::enable_if_t<nostd::is_container_v<T>, bool> = true,
-          std::enable_if_t<nostd::rank_v<T> == 2> = true, bool>
+          std::enable_if_t<nostd::rank_v<T> == 2, bool> = true>
 std::ostream& operator<<(std::ostream& s, const T& arr) {
     s << "\n[";
     for (auto& a : arr) s << a << "\n";
