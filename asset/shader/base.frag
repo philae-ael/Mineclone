@@ -1,4 +1,4 @@
-#version 460 core
+#version 450 core
 
 in vec2 out_texposition;
 flat in int out_textid;

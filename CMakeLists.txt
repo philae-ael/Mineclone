@@ -6,16 +6,16 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set (CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 20)
 
 if(MSVC)
   add_compile_options(/W4 /WX)
 else()
-  add_compile_options(-g -Wall -Wextra -pedantic -std=c++20 -Werror)
+  add_compile_options(-ggdb -Wall -Wextra -pedantic -std=c++20 -Werror)
 
   # Allow for shorter path in __FILE__ macro
   add_compile_options("-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
-  
+
   set(CMAKE_CXX_CLANG_TIDY clang-tidy)
   set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE include-what-you-use)
 endif()
@@ -34,9 +34,9 @@ endif()
 include(${CMAKE_BINARY_DIR}/conan.cmake)
 
 conan_cmake_configure(
-  REQUIRES glfw/3.3.6 glad/0.1.34 catch2/2.13.7
+  REQUIRES glfw/3.3.6 glad/0.1.34 catch2/2.13.7 imgui/1.86
   GENERATORS cmake_find_package
-  OPTIONS 
+  OPTIONS
   glad:gl_version=4.6
   glad:gl_profile=core
 )
@@ -54,8 +54,11 @@ conan_cmake_install(
 
 find_package(glfw3 REQUIRED)
 find_package(glad REQUIRED)
+find_package(imgui REQUIRED)
 
 include_directories(${GLFW3_INCLUDE_DIRS})
+include_directories(${IMGUI_INCLUDE_DIRS})
+include_directories(${imgui_RES_DIRS})
 include_directories(vendor/stb)
 
 add_executable(
@@ -69,10 +72,14 @@ add_executable(
   src/engine/system/world.cpp
   src/engine/component/renderer_context.cpp
   src/engine/component/shader.cpp
+
+  ${imgui_RES_DIRS}/bindings/imgui_impl_glfw.cpp
+  ${imgui_RES_DIRS}/bindings/imgui_impl_opengl3.cpp
 )
 
 target_link_libraries(mineclone PRIVATE glfw::glfw)
 target_link_libraries(mineclone PRIVATE glad::glad)
+target_link_libraries(mineclone PRIVATE imgui::imgui)
 
 enable_testing()
 add_subdirectory(test)

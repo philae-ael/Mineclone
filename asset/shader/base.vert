@@ -1,4 +1,4 @@
-#version 460 core
+#version 450 core
 
 in vec3 in_position;
 in vec2 in_texposition;

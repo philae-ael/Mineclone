@@ -16,3 +16,5 @@ Testing/
 .vs/VSWorkspaceState.json
 
 CMakeSettings.json
+
+imgui.ini

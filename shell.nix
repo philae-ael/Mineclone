@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> { } }:
 let
   libcxx = false; # NOTE: there isn't a source_location header in libcxx so it doesn't works...
-  gcc = true;
+  gcc = false;
 
   stdenv =
     if libcxx then
@@ -69,7 +69,7 @@ stdenv.mkDerivation
     cmake
     pkg-config
     gdb
-    renderdoc
+    # renderdoc
 
     # Language servers
     cmake-language-server

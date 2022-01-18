@@ -3,6 +3,9 @@
 #include <glad/glad.h>
 // must be after glad
 #include <GLFW/glfw3.h>
+#include <bindings/imgui_impl_glfw.h>
+#include <bindings/imgui_impl_opengl3.h>
+#include <imgui.h>
 
 #include <chrono>
 #include <exception>
@@ -18,7 +21,6 @@ Mineclone::Mineclone() {
     const int win_width = 800;
     const int win_height = 600;
     auto createWindow = [&]() -> WinInitError {
-
         glfwInit();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
@@ -49,28 +51,49 @@ Mineclone::Mineclone() {
     }
 
     renderer = std::make_unique<Renderer>();
-    auto resize_callback = [](GLFWwindow* window, int width, int height) {
-        // Can't bind this the normal way bc we need to convert the lambda to void (*)(GLFWindow*,int,int)
-        auto* self = (Mineclone*)glfwGetWindowUserPointer(window);
-        glViewport(0, 0, width, height);
-        self->renderer->setWindowSize(width, height);
-    };
 
-    glfwSetWindowUserPointer(mWindow, this);
-    glfwSetFramebufferSizeCallback(mWindow, resize_callback);
+    {  // Set Resize Callback
+        auto resize_callback = [](GLFWwindow* window, int width, int height) {
+            // Can't bind this the normal way bc we need to convert the lambda
+            // to void (*)(GLFWindow*,int,int)
+            auto* self = (Mineclone*)glfwGetWindowUserPointer(window);
+            glViewport(0, 0, width, height);
+            self->renderer->setWindowSize(width, height);
+        };
 
-    resize_callback(mWindow, win_width, win_height); 
+        glfwSetWindowUserPointer(mWindow, this);
+        glfwSetFramebufferSizeCallback(mWindow, resize_callback);
+
+        resize_callback(mWindow, win_width, win_height);
+    }
+
+    {  // Setup ImGUI
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGui::StyleColorsDark();
+
+        ImGui_ImplGlfw_InitForOpenGL(mWindow, true);
+        ImGui_ImplOpenGL3_Init("#version 450");
+    }
 }
 
-Mineclone::~Mineclone() { 
+Mineclone::~Mineclone() {
     // We do it this way so that glfwTerminate is called after deleting Renderer
     renderer.reset();
-    glfwTerminate(); 
+
+    {  // Terminate IMGUI
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+    }
+
+    glfwTerminate();
 }
 
 void convertDispatchEvent(GLFWwindow* mWindow) {
     CameraMoveEvent ev{};
 
+    // Camera translation with WASD + Space/Shift
     if (glfwGetKey(mWindow, GLFW_KEY_A) == GLFW_PRESS)
         ev.translationAxis[0] -= 1;
     if (glfwGetKey(mWindow, GLFW_KEY_D) == GLFW_PRESS)
@@ -84,7 +107,9 @@ void convertDispatchEvent(GLFWwindow* mWindow) {
     if (glfwGetKey(mWindow, GLFW_KEY_S) == GLFW_PRESS)
         ev.translationAxis[2] += 1;
 
-    if (glfwGetKey(mWindow, GLFW_KEY_UP) == GLFW_PRESS) ev.rotationAxis[0] += 1;
+    // Camera arrows with the arrows
+    if (glfwGetKey(mWindow, GLFW_KEY_UP) == GLFW_PRESS) 
+        ev.rotationAxis[0] += 1;
     if (glfwGetKey(mWindow, GLFW_KEY_DOWN) == GLFW_PRESS)
         ev.rotationAxis[0] -= 1;
     if (glfwGetKey(mWindow, GLFW_KEY_LEFT) == GLFW_PRESS)
@@ -95,6 +120,19 @@ void convertDispatchEvent(GLFWwindow* mWindow) {
     EventManager::dispatch(ev);
 }
 
+void runImGui(GLFWwindow* mWindow) {
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::Begin("ToolBar");
+    if (ImGui::Button("Exit")) glfwSetWindowShouldClose(mWindow, true);
+    ImGui::End();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
 void Mineclone::run() {
     auto begin = std::chrono::high_resolution_clock::now();
 
@@ -102,12 +140,12 @@ void Mineclone::run() {
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<float> frame_duration = end - begin;
 
-        if (glfwGetKey(mWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            glfwSetWindowShouldClose(mWindow, true);
-
         convertDispatchEvent(mWindow);
         renderer->update(frame_duration.count());
         renderer->render();
+
+        runImGui(mWindow);
+
         glfwSwapBuffers(mWindow);
         glfwPollEvents();
 
