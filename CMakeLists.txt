@@ -50,21 +50,14 @@ conan_cmake_install(
   SETTINGS ${settings}
 )
 
-
-
 find_package(glfw3 REQUIRED)
 find_package(glad REQUIRED)
-find_package(imgui REQUIRED)
 
-include_directories(${GLFW3_INCLUDE_DIRS})
-include_directories(${IMGUI_INCLUDE_DIRS})
-include_directories(${imgui_RES_DIRS})
-include_directories(vendor/stb)
+add_subdirectory(vendor/imgui)
+add_subdirectory(vendor/stb)
 
-add_executable(
-  mineclone
-  vendor/stb/stb_image.cpp
-  src/main.cpp
+add_library(
+  mineclone_engine STATIC
   src/engine/mineclone.cpp
   src/engine/utils/mat.cpp
   src/engine/utils/logging.cpp
@@ -72,14 +65,18 @@ add_executable(
   src/engine/system/world.cpp
   src/engine/component/renderer_context.cpp
   src/engine/component/shader.cpp
-
-  ${imgui_RES_DIRS}/bindings/imgui_impl_glfw.cpp
-  ${imgui_RES_DIRS}/bindings/imgui_impl_opengl3.cpp
 )
 
-target_link_libraries(mineclone PRIVATE glfw::glfw)
-target_link_libraries(mineclone PRIVATE glad::glad)
-target_link_libraries(mineclone PRIVATE imgui::imgui)
+target_include_directories(mineclone_engine PUBLIC src/)
+
+target_link_libraries(mineclone_engine PUBLIC glfw::glfw glad::glad imgui_glfw_opengl stb)
+
+add_executable(
+  mineclone
+  src/main.cpp
+ )
+
+ target_link_libraries(mineclone PRIVATE mineclone_engine)
 
 enable_testing()
 add_subdirectory(test)

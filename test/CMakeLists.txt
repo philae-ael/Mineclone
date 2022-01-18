@@ -7,7 +7,6 @@ include(Catch)
 
 
 add_executable(mineclone_tests
-  ../src/engine/utils/logging.cpp
   main.cpp
   math.cpp
   math_opengl.cpp
@@ -16,7 +15,7 @@ add_executable(mineclone_tests
 
 target_compile_options(mineclone_tests PRIVATE -Og)
 
-target_include_directories(mineclone_tests PRIVATE ../src/)
+target_link_libraries(mineclone_tests PRIVATE mineclone_engine)
 target_link_libraries(mineclone_tests PRIVATE Catch2::Catch2)
 
 catch_discover_tests(mineclone_tests)

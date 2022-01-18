@@ -1,8 +1,8 @@
+#include <engine/utils/logging.h>
+#include <engine/utils/range_iterator.h>
+
 #include <array>
 #include <catch2/catch.hpp>
-
-#include "engine/utils/logging.h"
-#include "engine/utils/range_iterator.h"
 
 TEST_CASE("range_it 1d") {
     range_it<unsigned int, 5> r;

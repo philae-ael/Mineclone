@@ -1,7 +1,7 @@
 #include <catch2/catch.hpp>
 
-#include "engine/utils/constexpr_functions.h"
-#include "engine/utils/mat.h"
+#include <engine/utils/constexpr_functions.h>
+#include <engine/utils/mat.h>
 
 using math::mat2i;
 using math::vec3i;

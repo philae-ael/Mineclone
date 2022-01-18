@@ -1,7 +1,7 @@
-#include <catch2/catch.hpp>
+#include <engine/utils/mat.h>
+#include <engine/utils/mat_opengl.h>
 
-#include "engine/utils/mat.h"
-#include "engine/utils/mat_opengl.h"
+#include <catch2/catch.hpp>
 
 using math::mat2i;
 using math::vec3i;
