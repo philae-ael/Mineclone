@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <optional>
@@ -21,33 +22,48 @@
 #include "../utils/mat_opengl.h"
 #include "camera_controller.h"
 
-const std::size_t max_size = 30000 * sizeof(BlockVertex);
-World::World(CameraController* camera_controller)
-    : camera_controller(camera_controller) {
-    camera_controller->getCamera().position = {4, 5, 4};
-    camera_controller->lookAt({0, 0, 0});
+typename World::chunk_data World::make_chunk_plus_context(int x, int z) const {
+    ChunkSimplifyerProxy chunk{{x, z}};
+    RendererContext renderer_context;
 
+    const auto& mesh = chunk.mesh;
+    const auto ctx = renderer_context.use();
+
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(mesh.bytes()),
+                 mesh.data(), GL_STATIC_DRAW);
+
+    auto with_shader = shader->use();
+    shader->useLayout(decltype(chunk)::mesh_type::layout);
+
+    atlas->bind();
+
+    return {std::move(chunk), renderer_context};
+}
+
+const std::size_t max_size = 30000 * sizeof(BlockVertex);
+World::World(const CameraController* camera_controller,
+             const PlayerController* player_controller)
+    : camera_controller(camera_controller),
+      player_controller(player_controller) {
     shader.emplace(get_asset<AssetKind::Shader>("base"));
     atlas.emplace(get_asset<AssetKind::TextureAtlas>("minecraft.png", 16, 16));
 
-    for (auto& [chunk, renderer_context] : world) {
-        const auto& mesh = chunk.mesh;
-        const auto ctx = renderer_context.use();
-
-        glGenBuffers(1, &VBO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(mesh.bytes()),
-                     mesh.data(), GL_STATIC_DRAW);
-
-        auto with_shader = shader->use();
-        shader->useLayout(decltype(chunk)::mesh_type::layout);
-
-        atlas->bind();
-    }
-
+    world.set_factory(std::bind_front(&World::make_chunk_plus_context, this));
     glEnable(GL_FRAMEBUFFER_SRGB);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+}
+
+chunk_identifier get_chunk_id(const math::vec3f& pos) {
+    return {.x = static_cast<int>(pos[0] / chunkWidth),
+            .z = static_cast<int>(pos[2] / chunkWidth)};
+}
+
+void World::update(float /*dt*/) {
+    chunk_identifier player_chunk_id =
+        get_chunk_id(player_controller->player.self.position);
+
+    world.set_current_position(player_chunk_id.x, player_chunk_id.z);
 }
 
 void renderMeshChunk(const CameraController* camera_controller, Shader& shader,

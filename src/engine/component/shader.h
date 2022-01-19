@@ -34,10 +34,8 @@ class Shader {
         vertex_shader = other.vertex_shader;
         fragment_shader = other.fragment_shader;
         shader_program = other.shader_program;
-        current_layout = other.current_layout;
 
         other.shader_program = other.fragment_shader = other.vertex_shader = 0;
-        other.current_layout = nullptr;
     }
     ~Shader();
 
@@ -55,14 +53,10 @@ class Shader {
         return {shader_program, current_shader};
     }
 
-    void useLayout(const Layout &);
+    void useLayout(const Layout &) const;
 
    private:
     GLuint vertex_shader, fragment_shader, shader_program;
-
-    // We are storing the current layout only to reflect that we are changing
-    // some "internal"
-    const Layout *current_layout = nullptr;
     Logger log = Logger::get({"Shader"});
 
     static GLuint current_shader;

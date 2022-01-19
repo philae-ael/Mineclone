@@ -19,7 +19,12 @@ class RendererContext {
     };
 
    public:
-    RendererContext() { glGenVertexArrays(1, &vao); }
+    RendererContext() {
+        glGenVertexArrays(1, &vao);
+        auto ctx = use();
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    }
     [[nodiscard]] RendererContextRAII use() const {
         if (vao == current_vao) return {0, 0};
 
@@ -29,6 +34,7 @@ class RendererContext {
 
    private:
     GLuint vao = 0;
+    GLuint vbo = 0;
 
     static GLuint current_vao;
 };

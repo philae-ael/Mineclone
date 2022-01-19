@@ -2,6 +2,7 @@
 #define RENDERER_H
 
 #include "camera_controller.h"
+#include "player_controller.h"
 #include "world.h"
 
 class Renderer {
@@ -19,7 +20,8 @@ class Renderer {
 
    private:
     CameraController camera_controller;
-    World world_renderer{&camera_controller};
+    PlayerController player_controller{&camera_controller};
+    World world_renderer{&camera_controller, &player_controller};
     Logger log{Logger::get({"Renderer"})};
 };
 

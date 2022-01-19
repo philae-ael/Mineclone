@@ -108,7 +108,7 @@ Shader::~Shader() {
     if (fragment_shader) glDeleteShader(fragment_shader);
 }
 
-void Shader::useLayout(const Layout& layout) {
+void Shader::useLayout(const Layout& layout) const {
     auto self = use();
 
     for (const auto& item : layout.items) {
@@ -138,6 +138,4 @@ void Shader::useLayout(const Layout& layout) {
         }
         glEnableVertexAttribArray(attrib);
     }
-
-    current_layout = &layout;
 }

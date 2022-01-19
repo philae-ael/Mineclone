@@ -182,16 +182,21 @@ constexpr mat<T, N, L> operator*(const mat<T, N, M> &rhs,
 template <typename T, int N>
 using vec = mat<T, N, 1>;
 
-template <typename T, std::convertible_to<const T> ...Args>
-constexpr auto diag(const T d1,  Args... args)
+template <typename T, std::convertible_to<const T>... Args>
+constexpr auto diag(const T d1, Args... args)
     -> mat<T, 1 + sizeof...(args), 1 + sizeof...(args)> {
     const unsigned int N = 1 + sizeof...(args);
 
-    const std::array<T, N> argv{d1, static_cast<const T>(args)...};
+    const vec<T, N> argv{d1, static_cast<const T>(args)...};
+    return diagv<T, N>(argv);
+}
+
+template <typename T, std::size_t N>
+constexpr mat<T, N, N> diagv(const vec<T, N> &v) {
     mat<T, N, N> res{};
 
-    for (unsigned int i = 0; i < 1 + sizeof...(args); i++) {
-        res[i][i] = argv[i];
+    for (unsigned int i = 0; i < N; i++) {
+        res[i][i] = v[i];
     }
 
     return res;
@@ -295,6 +300,15 @@ constexpr mat<T, N, M> componentwise_product(const mat<T, N, M> &lhs,
                                              const mat<T, N, M> &rhs) {
     mat<T, N, M> res;
     std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), res.begin(),
+                   componentwise_product<T, N, 1>);
+    return res;
+}
+
+template <typename T, int N>
+constexpr vec<T, N> componentwise_product(const vec<T, N> &lhs,
+                                          const vec<T, N> &rhs) {
+    vec<T, N> res;
+    std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), res.begin(),
                    std::multiplies{});
     return res;
 }
@@ -334,6 +348,17 @@ const vec<T, M> &get_view(vec<T, N> &v) {
     const vec<T, M> &p = *((vec<T, M> *)&v);
     return p;
 };
+
+template <typename T, int N>
+const vec<T, 3> &get_view3(vec<T, N> &v) {
+    return get_view<T, N, 3>(v);
+}
+
+template <typename T, int N>
+const vec<T, 2> &get_view2(vec<T, N> &v) {
+    return get_view<T, N, 2>(v);
+}
+
 
 using vec2f = vec<float, 2>;
 using mat2f = mat<float, 2, 2>;

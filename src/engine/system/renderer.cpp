@@ -6,10 +6,14 @@
 #include "world.h"
 
 void Renderer::setWindowSize(int width, int height) {
-    camera_controller.updateCamera(width, height);
+    camera_controller.updateCameraViewport(width, height);
 }
 
-void Renderer::update(float dt) { camera_controller.update(dt); }
+void Renderer::update(float dt) {
+    camera_controller.update(dt);
+    player_controller.update(dt);
+    world_renderer.update(dt);
+}
 
 void Renderer::render() {
     PROFILE_SCOPED_FPS();

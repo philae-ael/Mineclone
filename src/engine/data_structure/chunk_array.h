@@ -3,14 +3,20 @@
 
 #include <cmath>
 #include <cstddef>
+#include <cstdlib>
+#include <functional>
+#include <type_traits>
 #include <vector>
+
+#include "engine/utils/logging.h"
 
 const unsigned int default_half_size = 12;
 
-template <typename T, T(factory)(int x, int y) = T::T>
+template <typename T>
 class chunk_array {
    private:
     std::vector<std::vector<T>> data;
+    std::function<T(int, int)> factory;
 
    public:
     class chunk_array_it {
@@ -34,8 +40,7 @@ class chunk_array {
             inner++;
             while (outer != vv->end() && inner == outer->end()) {
                 outer++;
-                if (outer != vv->end())
-                    inner = outer->begin();
+                if (outer != vv->end()) inner = outer->begin();
             }
             return *this;
         }
@@ -69,54 +74,21 @@ class chunk_array {
     using value_type = T;
 
     chunk_array(unsigned int half_size = default_half_size)
-        : half_size(half_size) {
+        : half_size(half_size) {}
+
+    void set_factory(std::function<T(int, int)> f) {
+        factory = f;
         resize_emplace();
     }
 
     [[nodiscard]] unsigned int size() const { return 2 * half_size + 1; }
 
     void move_current_position(int x_rel, int y_rel) {
+        if(!x_rel && ! y_rel)
+            return;
         current_position.x += x_rel;
         current_position.y += y_rel;
-        if (static_cast<unsigned int>(std::abs(x_rel)) >= size() ||
-            static_cast<unsigned int>(std::abs(y_rel)) >= size()) {
-            resize_emplace();
-        }
-
-        int x_min = -static_cast<int>(half_size);
-        int x_max = x_rel - static_cast<int>(half_size);
-        if (x_rel < 0) {
-            x_min = static_cast<int>(half_size) + x_rel + 1;
-            x_max = static_cast<int>(half_size) + 1;
-        }
-        for (int i = x_min; i < x_max; i++) {
-            for (int j = 0; j < static_cast<int>(size()); j++) {
-                auto [i2, j2] =
-                    get_indices_from_id(current_position.x - x_rel + i,
-                                        current_position.y - y_rel + j);
-                auto [x, y] = get_id_from_indices(i2, j2);
-
-                // TODO: make sure the old chunk deallocate its content
-                data[i2][j2] = T{x, y};
-            }
-        }
-
-        int y_min = -static_cast<int>(half_size);
-        int y_max = y_rel - static_cast<int>(half_size);
-        if (y_rel < 0) {
-            y_min = static_cast<int>(half_size) + y_rel + 1;
-            y_max = static_cast<int>(half_size) + 1;
-        }
-        for (int i = y_min; i < y_max; i++) {
-            for (int j = 0; j < static_cast<int>(size()); j++) {
-                auto [i2, j2] =
-                    get_indices_from_id(current_position.x - x_rel + i,
-                                        current_position.y - y_rel + j);
-                auto [x, y] = get_id_from_indices(i2, j2);
-                // TODO: make sure the old chunk deallocate its content
-                data[i2][j2] = factory(x, y);
-            }
-        }
+        resize_emplace();
     }
 
     void set_current_position(int abs_x, int abs_y) {
@@ -133,18 +105,21 @@ class chunk_array {
                                                           std::size_t j) const {
         auto [current_i, current_j] =
             get_indices_from_id(current_position.x, current_position.y);
-        int dx = (i - current_i) % size(),
-            dy = (j - current_j) % size();
 
-        if (dx > static_cast<int>(half_size)) dx -= size();
-        if (dy > static_cast<int>(half_size)) dy -= size();
+        auto di = static_cast<int>(i) - static_cast<int>(current_i);
+        auto dj = static_cast<int>(j) - static_cast<int>(current_j);
 
-        return {current_position.x + dx, current_position.y + dy};
+        if(di > static_cast<int>(half_size))
+            di -= size();
+        if(dj > static_cast<int>(half_size))
+            dj -= size();
+
+        return {current_position.x + di, current_position.y + dj};
     }
 
     [[nodiscard]] std::pair<std::size_t, std::size_t> get_indices_from_id(
         int x, int y) const {
-        return {x % size(), y % size()};
+        return {x  % size(), y % size()};
     }
 
     void resize_emplace() {
